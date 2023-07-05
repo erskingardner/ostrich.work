@@ -13,9 +13,9 @@
 </script>
 
 {#if $currentUser}
-    <Popover style="position: relative;" class="h-10 w-10">
-        <PopoverButton class="h-10 w-10">
-            <Avatar ndk={$ndk} npub={$currentUser.npub} class="w-10 h-10 bg-cover" />
+    <Popover style="position: relative;" class="h-12 w-12">
+        <PopoverButton class="h-12 w-12">
+            <Avatar ndk={$ndk} npub={$currentUser.npub} class="w-12 h-12 bg-cover" />
         </PopoverButton>
 
         <PopoverPanel
