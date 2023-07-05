@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+a {
+    @apply no-underline border-b border-orange-600 hover:border-dashed;
+}
+
+.popoverPanelLink {
+    @apply flex flex-row gap-2 items-center no-underline px-2 py-1 font-medium bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 hover:dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-0;
+}
