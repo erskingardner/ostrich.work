@@ -3,7 +3,7 @@
     import JobList from "$lib/components/JobList.svelte";
 </script>
 
-<h2>The first and best <a href="https://nostr.how" target="_blank" class="font-extrabold no-underline">Nostr</a> Jobs board on the internet.</h2>
+<h2 class="">The first and best <a href="https://nostr.how" target="_blank" class="font-extrabold no-underline">Nostr</a> Jobs board on the internet.</h2>
 
 <PostJobButton />
 <JobList />

@@ -12,7 +12,7 @@
     }
 </script>
 
-<div class="flex flex-col md:flex-row items-center md:gap-6">
+<div class="flex flex-col md:flex-row items-center gap-4 md:gap-12">
     <button on:click={postOrLogIn} class="text-white transition-all py-2 px-4 text-xl italic font-extrabold shadow-square-br shadow-orange-600 hover:shadow-orange-600 bg-purple-700 hover:bg-purple-600">
         Post a job
     </button>
