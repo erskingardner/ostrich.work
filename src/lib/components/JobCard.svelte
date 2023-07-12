@@ -1,15 +1,59 @@
 <script lang="ts">
+    import type { NDKEvent, NDKTag, NDKUser } from "@nostr-dev-kit/ndk";
+    import ndk from "$lib/stores/ndk";
+    import { firstTagValue, formattedDate } from "$lib/utils/helpers";
+    import { Avatar } from "@nostr-dev-kit/ndk-svelte-components";
+    import { goto } from "$app/navigation";
+    import JobStatPills from "./JobStatPills.svelte";
+    import { contractTypeOptions, categoryOptions } from "$lib/data/formOptions";
+
+    export let job:NDKEvent;
+
+    let title:string = firstTagValue(job, "title");
+    let location:string = firstTagValue(job, "location");
+    let tagline:string = firstTagValue(job, "summary");
+    let contractType:string;
+    let jobCategories:string[] = [];
+    let price:string | undefined = firstTagValue(job, "price");
+    let publishedAt:number = parseInt(firstTagValue(job, "published_at")) * 1000;
+    let author: NDKUser = $ndk.getUser({hexpubkey: job.pubkey});
+
+    let hashtags: NDKTag[] = job.getMatchingTags("t");
+    hashtags.forEach((tag) => {
+        let contractTypeMatch = contractTypeOptions.find(element => element.value === tag[1]);
+        if (contractTypeMatch) contractType = contractTypeMatch.name;
+
+        let categoryMatch = categoryOptions.find(element => element.value === tag[1]);
+        if (categoryMatch) jobCategories.push(categoryMatch.name);
+    });
+
+    function goToJob() {
+        goto(`/jobs/${job.encode()}`);
+    }
 
 </script>
 
-<a href="jobs/noteID" class="hover:border hover:border-opacity-50 hover:text-zinc-50 border no-underline border-zinc-50 border-opacity-20 p-4">
-    <div class="flex flex-row justify-between items-baseline">
-        <span class="font-medium">Kind 0</span>
-        <span class="opacity-70">Posted 3 days ago</span>
+<div
+    on:click={goToJob}
+    on:keydown={goToJob}
+    tabindex=0
+    role="button"
+    class="bg-zinc-50 dark:bg-zinc-950 border dark:hover:text-zinc-50 no-underline border-zinc-700/50 hover:border-zinc-700 dark:border-zinc-50/50 hover:dark:border-zinc-50 p-4 shadow-square-grey-sm duration-1000 hover:duration-500 hover:shadow-square-orange"
+>
+    <div class="flex flex-row justify-between items-center mb-4">
+        <span class="font-medium flex flex-row gap-1 items-center">
+            {#await author.fetchProfile() then eventSet}
+                <Avatar ndk={$ndk} npub={author.npub} class="w-8 h-8 rounded-sm m-0" />
+                {author.profile?.displayName}
+            {/await}
+        </span>
+        <span class="opacity-70">
+            {formattedDate(publishedAt)}
+        </span>
     </div>
-    <div class="flex flex-row gap-4 items-baseline">
-        <h3 class="mt-0 font-bold">Software Engineer</h3>
+    <div class="flex flex-row gap-4 items-center">
+        <h3 class="mt-0 font-bold">{title}</h3>
     </div>
-    <p>Job Tagline. Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
-    <span>Full-time / Remote Worldwide</span>
-</a>
+    <span class='mb-6 block'>{tagline}</span>
+    <JobStatPills {location} {price} {contractType} {jobCategories} />
+</div>

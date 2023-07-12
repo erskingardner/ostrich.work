@@ -1,11 +1,25 @@
-import { nip19 } from 'nostr-tools';
+import type { NDKEvent, NDKUser } from '@nostr-dev-kit/ndk';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 
-export function unixTimeNow() {
+dayjs.extend(relativeTime);
+
+export function unixTimeNowInSeconds() {
     return Math.floor(new Date().getTime() / 1000);
 }
 
 export function dateTomorrow() {
     return new Date(Date.now() + 3600 * 1000 * 24);
+}
+
+export function formattedDate(unixTimestamp: number): string {
+    const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    };
+    const date = new Date(unixTimestamp);
+    return date.toLocaleDateString('en-US', options);
 }
 
 export function truncatedBech(bech32: string, length?: number): string {
@@ -20,19 +34,40 @@ export async function copyToClipboard(textToCopy: string) {
     }
 }
 
-export function pointerForList(list: App.List) {
-    switch (list.kind) {
-        case 10000:
-        case 10001:
-            return nip19.noteEncode(list.listId as string);
-        case 30000:
-        case 30001:
-            return nip19.naddrEncode({
-                identifier: list.name,
-                kind: list.kind,
-                pubkey: list.authorHexPubkey
-            });
-        default:
-            break;
+export function slugify(string: string): string {
+    return string.toLowerCase().replace(/\s/g, '-');
+}
+
+export function firstTagValue(event: NDKEvent, tagName: string): string {
+    const firstTag = event.getMatchingTags(tagName)[0];
+    return firstTag ? firstTag[1] : '';
+}
+
+export function mostRecentPostTime(events: NDKEvent[]): string {
+    if (events.length > 1) {
+        const sortedEvents = sortEventsRevCron(events);
+        return dayjs(parseInt(firstTagValue(sortedEvents[0], 'published_at')) * 1000).fromNow();
+    } else {
+        return dayjs(parseInt(firstTagValue(events[0], 'published_at')) * 1000).fromNow();
     }
+}
+
+export function sortEventsRevCron(events: NDKEvent[]): NDKEvent[] {
+    if (events.length > 1) {
+        return events.sort(
+            (a, b) =>
+                parseInt(firstTagValue(b, 'published_at')) -
+                parseInt(firstTagValue(a, 'published_at'))
+        );
+    } else {
+        return events;
+    }
+}
+
+export function truncatedNpub(user: NDKUser): string {
+    return user.npub ? truncatedBech(user.npub) : '';
+}
+
+export function displayableName(user: NDKUser): string {
+    return user.profile?.name || user.profile?.displayName || truncatedNpub(user);
 }

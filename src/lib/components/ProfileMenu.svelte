@@ -4,18 +4,18 @@
     import { Popover, PopoverButton, PopoverPanel } from '@rgossiaux/svelte-headlessui';
     import { Avatar } from '@nostr-dev-kit/ndk-svelte-components';
     import { RelayList } from '@nostr-dev-kit/ndk-svelte-components';
-    import CirclePlusIcon from '../../elements/icons/CirclePlus.svelte';
-    import LogoutIcon from '../../elements/icons/Logout.svelte';
+    import CirclePlusIcon from '../elements/icons/CirclePlus.svelte';
+    import PersonIcon from '../elements/icons/Person.svelte';
+    import LogoutIcon from '../elements/icons/Logout.svelte';
     import { createEventDispatcher } from 'svelte';
 
     const dispatch = createEventDispatcher();
-
 </script>
 
 {#if $currentUser}
     <Popover style="position: relative;" class="h-12 w-12">
         <PopoverButton class="h-12 w-12">
-            <Avatar ndk={$ndk} npub={$currentUser.npub} class="w-12 h-12 bg-cover" />
+            <Avatar ndk={$ndk} npub={$currentUser.npub} class="w-12 h-12 bg-cover shadow-square-grey-sm hover:shadow-square-orange duration-1000 hover:duration-500 border border-zinc-700/50 hover:border-zinc-700 dark:border-zinc-50/50 hover:dark:border-zinc-50" />
         </PopoverButton>
 
         <PopoverPanel
@@ -32,7 +32,11 @@
                     <CirclePlusIcon />
                     New job posting
                 </PopoverButton>
-                <PopoverButton on:click={() => dispatch("logout")} class="popoverPanelLink">
+                <PopoverButton as="a" href={`/${$currentUser.npub}`} class="popoverPanelLink">
+                    <PersonIcon />
+                    My profile
+                </PopoverButton>
+                <PopoverButton on:click={() => dispatch('logout')} class="popoverPanelLink">
                     <LogoutIcon />
                     Log out
                 </PopoverButton>
@@ -43,5 +47,10 @@
         </PopoverPanel>
     </Popover>
 {:else}
-    <button id="loginButton" on:click={() => dispatch("login")} class="border py-2 px-4 font-semibold hover:bg-purple-500/20 dark:hover:bg-purple-400/20">Log in</button>
+    <button
+        id="loginButton"
+        on:click={() => dispatch('login')}
+        class="border py-2 px-4 font-semibold hover:bg-purple-500/20 dark:hover:bg-purple-400/20"
+        >Log in</button
+    >
 {/if}
