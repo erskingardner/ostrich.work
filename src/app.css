@@ -2,12 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-a {
+a:not(.not-styled) {
     @apply transition-colors duration-200 no-underline border-b border-orange-600 hover:border-0 hover:text-orange-600;
 }
 
 .popoverPanelLink {
-    @apply flex flex-row gap-2 items-center no-underline px-2 py-1 font-medium bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 hover:dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-0;
+    @apply transition duration-1000 hover:duration-500 flex flex-row gap-2 items-center no-underline px-2 py-1 font-medium bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 hover:dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-none;
 }
 
 .flashMessage {

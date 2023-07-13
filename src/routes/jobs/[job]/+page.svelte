@@ -6,6 +6,8 @@
     import { cleanMarkdown } from "$lib/utils/markdown.js";
     import JobStatPills from "$lib/components/JobStatPills.svelte";
     import { contractTypeOptions, categoryOptions } from "$lib/data/formOptions.js";
+    import { browser } from "$app/environment";
+    import { currentUser } from "$lib/stores/currentUser.js";
 
     export let data;
 
@@ -29,7 +31,7 @@
         location = firstTagValue(job, "location");
         summary = firstTagValue(job, "summary");
         price = firstTagValue(job, "price");
-        publishedAt = parseInt(firstTagValue(job, "published_at")) * 1000;
+        publishedAt = parseInt(firstTagValue(job, "published_at"));
         author = $ndk.getUser({hexpubkey: job.pubkey});
         hashtags = job.getMatchingTags("t");
         hashtags.forEach((tag) => {
@@ -54,6 +56,13 @@
 {#key job}
     {#if job}
         <div class="prose dark:prose-invert mx-auto">
+            {#if $currentUser?.npub === author.npub}
+                <div class="flex flex-row justify-end">
+                    <a href={`/jobs/${data.jobAddr}/edit`} class="py-2 px-4 transition-all focus:outline-none border-none no-underline text-2xl duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg">
+                        <span class="skew-x-12 block">Edit</span>
+                    </a>
+                </div>
+            {/if}
             <h1 class="mt-10 mb-2 text-orange-600 border-b-2 border-b-orange-500 pb-1">{title}</h1>
             <span class="italic text-lg font-bold">{summary}</span>
             {#await author.fetchProfile() then value}
@@ -74,3 +83,12 @@
         </div>
     {/if}
 {/key}
+
+<!-- {#if author && browser}
+    <script
+    src="https://nostri.chat/public/bundle.js"
+    data-chat-type="DM"
+    data-website-owner-pubkey={author.hexpubkey()}
+    data-relays="wss://nostr.band, wss://relay.damus.io, wss://nos.lol, wss://relay.snort.social"
+    ></script>
+{/if} -->

@@ -28,15 +28,15 @@
             "
         >
             <div class="panel-contents flex flex-col gap-2">
-                <PopoverButton as="a" href={'/jobs/new'} class="popoverPanelLink">
+                <PopoverButton as="a" href={'/jobs/new'} class="popoverPanelLink not-styled">
                     <CirclePlusIcon />
                     New job posting
                 </PopoverButton>
-                <PopoverButton as="a" href={`/${$currentUser.npub}`} class="popoverPanelLink">
+                <PopoverButton as="a" href={`/${$currentUser.npub}`} class="popoverPanelLink not-styled">
                     <PersonIcon />
                     My profile
                 </PopoverButton>
-                <PopoverButton on:click={() => dispatch('logout')} class="popoverPanelLink">
+                <PopoverButton as="a" on:click={() => dispatch('logout')} class="popoverPanelLink not-styled">
                     <LogoutIcon />
                     Log out
                 </PopoverButton>

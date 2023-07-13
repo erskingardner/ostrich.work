@@ -17,7 +17,6 @@
     $: user.fetchProfile();
     $: userProfile = user.profile;
     $: name = user.profile?.displayName || user.profile?.name || user.npub
-    $: console.log(userProfile)
 
     function handleUsernameClick(event:any) {
         if(event.detail !== user) {

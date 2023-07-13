@@ -8,17 +8,18 @@
     import { onMount } from 'svelte';
     import { dateTomorrow } from '$lib/utils/helpers';
     import { goto } from '$app/navigation';
+    import { browser } from '$app/environment';
     import toast, { Toaster } from 'svelte-french-toast';
 
     let savestore = false;
 
     $: if (savestore && $currentUser) {
         // Get the user
-        window.sessionStorage.setItem('nostrJobsCurrentUser', JSON.stringify($currentUser));
+        window.sessionStorage.setItem('ostrichWorkCurrentUser', JSON.stringify($currentUser));
     }
 
-    onMount(async () => {
-        const storedUser = window.sessionStorage.getItem('nostrJobsCurrentUser');
+    if (browser)   {
+        const storedUser = window.sessionStorage.getItem('ostrichWorkCurrentUser');
         if (storedUser) {
             currentUser.set(JSON.parse(storedUser));
             document.cookie = `userNpub=${
@@ -26,7 +27,7 @@
             }; expires=${dateTomorrow()}; SameSite=Lax; Secure`;
         }
         savestore = true;
-    });
+    }
 
     async function login(domEvent: any) {
         const signer = new NDKNip07Signer();
@@ -36,7 +37,7 @@
             if (!!ndkUser.npub) {
                 ndkUser.ndk = $ndk;
                 currentUser.set(ndkUser);
-                window.sessionStorage.setItem('nostrJobsCurrentUser', JSON.stringify(ndkUser));
+                window.sessionStorage.setItem('ostrichWorkCurrentUser', JSON.stringify(ndkUser));
                 document.cookie = `userNpub=${ndkUser.npub};
                 expires=${dateTomorrow()}; SameSite=Lax; Secure`;
                 toast.success("Logged in");
@@ -49,7 +50,7 @@
     function logout(e: Event) {
         e.preventDefault();
         currentUser.set(undefined);
-        window.sessionStorage.removeItem('nostrJobsCurrentUser');
+        window.sessionStorage.removeItem('ostrichWorkCurrentUser');
         document.cookie = 'userNpub=';
         goto('/');
     }
