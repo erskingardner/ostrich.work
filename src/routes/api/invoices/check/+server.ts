@@ -1,6 +1,8 @@
 import { ADMIN_KEY, INVOICE_READ_KEY } from '$env/static/private';
-import LNBits from 'lnbits';
 import { dev } from '$app/environment';
+// import LNBits from 'lnbits';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const LNBits = require('lnbits');
 
 export async function GET({ url }) {
     const paymentHash = url.searchParams.get('paymentHash');
