@@ -1,3 +1,4 @@
+// @ts-ignore
 import { ADMIN_KEY, INVOICE_READ_KEY } from '$env/static/private';
 import LNBits from 'lnbits';
 
