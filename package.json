@@ -44,6 +44,7 @@
         "dompurify": "^3.0.4",
         "flowbite": "^1.7.0",
         "flowbite-svelte": "^0.39.2",
+        "isomorphic-dompurify": "^1.8.0",
         "lnbits": "^1.1.5",
         "marked": "^5.1.1",
         "marked-gfm-heading-id": "^3.0.4",

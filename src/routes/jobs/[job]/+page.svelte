@@ -54,7 +54,7 @@
     <div class="flex flex-col gap-8">
         <div>
             <h2 class="text-orange-600 border-b-2 border-b-orange-500">Job Description</h2>
-            {@html cleanMarkdown(description)}
+            <div class="markdownContent">{@html cleanMarkdown(description)}</div>
         </div>
     </div>
 </div>

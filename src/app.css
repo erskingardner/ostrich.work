@@ -13,3 +13,7 @@ a {
 .flashMessage {
     @apply flex flex-row gap-2 absolute top-6 left-1/2 -translate-x-1/2 max-w-xs px-2 py-1 border border-zinc-800/20 dark:border-zinc-100/20 shadow-lg;
 }
+
+.markdownContent a {
+    @apply no-underline;
+}
