@@ -59,7 +59,7 @@
         submitDisabled = true;
 
         wallet.createInvoice({
-            amount: 100,
+            amount: 10000,
             memo: `Job posting on Ostrich.work: ${title}`,
             out: false
         })
