@@ -51,23 +51,29 @@
         submitDisabled = true;
         fetch(`/api/invoices/new?memo=Job posting on Ostrich.work: ${title}`)
         .then(async (resp) => {
-            const newInvoice = await resp.json();
-            paymentRequestUrl = `lightning:${newInvoice.payment_request.toUpperCase()}`;
-            const invoiceCanvas = document.getElementById("invoice");
+            try {
+                const newInvoice = await resp.json();
+                paymentRequestUrl = `lightning:${newInvoice.payment_request.toUpperCase()}`;
+                const invoiceCanvas = document.getElementById("invoice");
 
-            QRCode.toCanvas(
-                invoiceCanvas,
-                paymentRequestUrl,
-                {errorCorrectionLevel: 'H', width: 250},
-                (error:any) => {
-                    if (error) {
-                        console.log(error);
-                    } else {
-                        invoiceGenerated = true;
-                        awaitAndHandlePayment(newInvoice);
-                        setTimeout(() => invoiceCanvas?.scrollIntoView({ block: 'start',  behavior: 'smooth' }), 100);
-                    }
-            });
+                QRCode.toCanvas(
+                    invoiceCanvas,
+                    paymentRequestUrl,
+                    {errorCorrectionLevel: 'H', width: 250},
+                    (error:any) => {
+                        if (error) {
+                            console.log(error);
+                        } else {
+                            invoiceGenerated = true;
+                            awaitAndHandlePayment(newInvoice);
+                            setTimeout(() => invoiceCanvas?.scrollIntoView({ block: 'start',  behavior: 'smooth' }), 100);
+                        }
+                });
+            } catch (error:any) {
+                console.error(error);
+                toast.error(error);
+                submitDisabled = false;
+            }
         }).catch((error) => {
             console.error(error);
             toast.error(error);
