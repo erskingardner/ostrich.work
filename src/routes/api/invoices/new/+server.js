@@ -1,13 +1,14 @@
 // @ts-ignore
 import { ADMIN_KEY, INVOICE_READ_KEY } from '$env/static/private';
 import LNBits from 'lnbits';
+import { dev } from '$app/environment';
 
 export const GET = async ({ url }) => {
     const memo = url.searchParams.get('memo');
 
     const { wallet } = LNBits({
-        adminKey: ADMIN_KEY,
-        invoiceReadKey: INVOICE_READ_KEY,
+        adminKey: dev ? ADMIN_KEY : process.env.ADMIN_KEY,
+        invoiceReadKey: dev ? INVOICE_READ_KEY : process.env.INVOICE_READ_KEY,
         endpoint: 'https://legend.lnbits.com'
     });
 
