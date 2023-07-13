@@ -4,7 +4,7 @@
 </script>
 
 <div class="py-4 flex flex-row justify-between items-center">
-    <a href="/" class="border-0 hover:text-orange-600 duration-500">
+    <a href="/" class="border-0 hover:text-orange-600">
         <h1 class="text-3xl md:text-5xl font-extrabold font-montagu">Ostrich Work</h1>
     </a>
     <div class="flex flex-row items-center gap-4">

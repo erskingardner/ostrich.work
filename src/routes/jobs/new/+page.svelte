@@ -64,8 +64,8 @@
                         console.log(error);
                     } else {
                         invoiceGenerated = true;
-                        invoiceCanvas?.scrollIntoView({ block: 'start',  behavior: 'smooth' });
                         awaitAndHandlePayment(newInvoice);
+                        setTimeout(() => invoiceCanvas?.scrollIntoView({ block: 'start',  behavior: 'smooth' }), 100);
                     }
             });
         }).catch((error) => {
