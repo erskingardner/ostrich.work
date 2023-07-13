@@ -10,6 +10,7 @@
     const jobSub = $ndk.subscribe({kinds: [30402], "#t": ['jobs', 'work', 'employment']}, {closeOnEose: false});
 
     jobSub.on('event', (event) => {
+        if (event.id === "6757fa84f7fa2bec32e6849634ece41943692e46ea100b585a53ef6572e2356e") return // skip test event
         if (!jobEvents.includes(event)) {
             jobEvents.push(event);
             jobEvents.sort((a,b) => parseInt(firstTagValue(b, 'published_at')) - parseInt(firstTagValue(a, 'published_at')));

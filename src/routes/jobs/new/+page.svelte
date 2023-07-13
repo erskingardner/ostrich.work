@@ -13,6 +13,8 @@
     import { contractTypeOptions, categoryOptions } from '$lib/data/formOptions';
     import QRCode from 'qrcode';
     import WaitingSpinner from '$lib/components/WaitingSpinner.svelte';
+    import LNBits from 'lnbits';
+    import { dev } from '$app/environment';
 
     let user:NDKUser;
 
@@ -35,24 +37,34 @@
         $ndk.signer = signer;
     }
 
+    const { wallet } = LNBits({
+        invoiceReadKey: dev ? "86f957d676f14a038a58151dfbbb9fe7" : "fb400ba1854542df9fac1b13b97bc6d3",
+        adminKey: "",
+        endpoint: 'https://legend.lnbits.com'
+    });
+
     function awaitAndHandlePayment(invoice: any) {
-        paymentCheckInterval = setInterval(async () => {
-            const resp = await fetch(`/api/invoices/check?paymentHash=${invoice.payment_hash}`);
-            const checkedIncoice = await resp.json();
-            if (checkedIncoice.paid) {
-                invoicePaid = true;
-                clearInterval(paymentCheckInterval);
-                publishJobEvent();
-            }
+        paymentCheckInterval = setInterval(() => {
+            wallet.checkInvoice({ payment_hash: invoice.payment_hash }).then((checkedInvoice) => {
+                if (checkedInvoice.paid) {
+                    invoicePaid = true;
+                    clearInterval(paymentCheckInterval);
+                    publishJobEvent();
+                }
+            })
         }, 1000);
     }
 
     function handleFormSubmit(event: any) {
         submitDisabled = true;
-        fetch(`/api/invoices/new?memo=Job posting on Ostrich.work: ${title}`)
-        .then(async (resp) => {
+
+        wallet.createInvoice({
+            amount: 100,
+            memo: `Job posting on Ostrich.work: ${title}`,
+            out: false
+        })
+        .then((newInvoice) => {
             try {
-                const newInvoice = await resp.json();
                 paymentRequestUrl = `lightning:${newInvoice.payment_request.toUpperCase()}`;
                 const invoiceCanvas = document.getElementById("invoice");
 
