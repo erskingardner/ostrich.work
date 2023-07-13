@@ -15,7 +15,7 @@
     let contractType:string;
     let jobCategories:string[] = [];
     let price:string | undefined = firstTagValue(job, "price");
-    let publishedAt:number = parseInt(firstTagValue(job, "published_at")) * 1000;
+    let publishedAt:number = parseInt(firstTagValue(job, "published_at"));
     let author: NDKUser = $ndk.getUser({hexpubkey: job.pubkey});
 
     let hashtags: NDKTag[] = job.getMatchingTags("t");
@@ -33,12 +33,9 @@
 
 </script>
 
-<div
-    on:click={goToJob}
-    on:keydown={goToJob}
-    tabindex=0
-    role="button"
-    class="bg-zinc-50 dark:bg-zinc-950 border dark:hover:text-zinc-50 no-underline border-zinc-700/50 hover:border-zinc-700 dark:border-zinc-50/50 hover:dark:border-zinc-50 p-4 shadow-square-grey-sm duration-1000 hover:duration-500 hover:shadow-square-orange"
+<a
+    href={`/jobs/${job.encode()}`}
+    class="not-styled transition-all bg-zinc-50 dark:bg-zinc-950 border dark:hover:text-zinc-50 no-underline border-zinc-700/50 hover:border-zinc-700 dark:border-zinc-50/50 hover:dark:border-zinc-50 p-4 shadow-square-grey-sm duration-1000 hover:duration-500 hover:shadow-square-orange"
 >
     <div class="flex flex-row justify-between items-center mb-4">
         <span class="font-medium flex flex-row gap-1 items-center">
@@ -56,4 +53,4 @@
     </div>
     <span class='mb-6 block'>{tagline}</span>
     <JobStatPills {location} {price} {contractType} {jobCategories} />
-</div>
+</a>

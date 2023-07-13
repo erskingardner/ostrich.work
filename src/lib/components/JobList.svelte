@@ -19,7 +19,7 @@
     });
 
     jobSub.on('eose', () => {
-        console.log('EOSE');
+        // console.log('EOSE');
     });
 
     jobSub.on('notice', (notice) => {

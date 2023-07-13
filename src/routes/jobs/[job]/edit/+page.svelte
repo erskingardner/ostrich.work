@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { NDKEvent, NDKUser } from '@nostr-dev-kit/ndk';
-    import { NDKNip07Signer } from '@nostr-dev-kit/ndk';
+    import { NDKEvent, NDKUser, NDKNip07Signer } from '@nostr-dev-kit/ndk';
+    import type { NDKTag } from '@nostr-dev-kit/ndk';
     import ndk from '$lib/stores/ndk';
     import { currentUser } from '$lib/stores/currentUser';
     import { unixTimeNowInSeconds, slugify } from '$lib/utils/helpers';
@@ -11,106 +11,73 @@
     import TextInput from '$lib/components/Forms/TextInput.svelte';
     import { Select, MultiSelect } from 'flowbite-svelte';
     import { contractTypeOptions, categoryOptions } from '$lib/data/formOptions';
-    import QRCode from 'qrcode';
-    import WaitingSpinner from '$lib/components/WaitingSpinner.svelte';
-    import { dev } from '$app/environment';
+    import { firstTagValue } from '$lib/utils/helpers';
 
-    // 🤮 JavaScript
-    import _LNBits from "lnbits";
-    let LNBits: any;
 
-    if (_LNBits.default) {
-        LNBits = _LNBits.default;
-    } else {
-        LNBits = _LNBits;
+
+    export let data;
+
+    if(browser) {
+        if(!$currentUser) redirectUnauthorized();
+
+        let userPubkey = $ndk.getUser({npub: $currentUser?.npub}).hexpubkey();
+        if(data.eventPubkey !== userPubkey) redirectUnauthorized();
     }
 
-    if(!$currentUser && browser) {
-        toast.error("Unauthorized")
-        goto("/")
-    }
-
-    let user:NDKUser;
-
+    console.log(data)
+    let job: NDKEvent;
     let title:string;
+    let description:string;
     let location:string;
-    let tagline:string;
+    let summary:string;
     let contractType:string;
+    let categories:string[] = [];
     let price:string;
-    let description: string = "";
-    let categories:string[];
+    let publishedAt:string;
+    let author: NDKUser;
+    let hashtags: NDKTag[]
 
+
+    $ndk.fetchEvent(data.jobAddr).then((event) => {
+        if (event) {
+            job = event as NDKEvent;
+            title = firstTagValue(job, "title");
+            description = job.content;
+            location = firstTagValue(job, "location");
+            summary = firstTagValue(job, "summary");
+            price = firstTagValue(job, "price");
+            // This is in seconds and needs to stay that way
+            publishedAt = firstTagValue(job, "published_at");
+            author = $ndk.getUser({hexpubkey: job.pubkey});
+            hashtags = job.getMatchingTags("t");
+            hashtags.forEach((tag) => {
+                let contractTypeMatch = contractTypeOptions.find(element => element.value === tag[1]);
+                if (contractTypeMatch) contractType = contractTypeMatch.value;
+                let categoryMatch = categoryOptions.find(element => element.value === tag[1]);
+                if (categoryMatch) categories.push(categoryMatch.value);
+            });
+        } else {
+            console.error("No event found")
+        }
+    });
     let submitDisabled:boolean = false;
-    let invoiceGenerated:boolean = false;
-    let invoicePaid:boolean = false;
-    let paymentCheckInterval: any;
-    let paymentRequestUrl:string;
 
     if (browser) {
         const signer = new NDKNip07Signer();
         $ndk.signer = signer;
     }
 
-    const { wallet } = LNBits({
-        invoiceReadKey: dev ? "86f957d676f14a038a58151dfbbb9fe7" : "fb400ba1854542df9fac1b13b97bc6d3",
-        adminKey: "",
-        endpoint: 'https://legend.lnbits.com'
-    });
-
-    function awaitAndHandlePayment(invoice: any) {
-        paymentCheckInterval = setInterval(() => {
-            wallet.checkInvoice({ payment_hash: invoice.payment_hash }).then((checkedInvoice) => {
-                if (checkedInvoice.paid) {
-                    invoicePaid = true;
-                    clearInterval(paymentCheckInterval);
-                    publishJobEvent();
-                }
-            })
-        }, 1000);
-    }
-
-    function handleFormSubmit(event: any) {
-        submitDisabled = true;
-
-        wallet.createInvoice({
-            amount: 10000,
-            memo: `Job posting on Ostrich.work: ${title}`,
-            out: false
-        })
-        .then((newInvoice) => {
-            try {
-                paymentRequestUrl = `lightning:${newInvoice.payment_request.toUpperCase()}`;
-                const invoiceCanvas = document.getElementById("invoice");
-
-                QRCode.toCanvas(
-                    invoiceCanvas,
-                    paymentRequestUrl,
-                    {errorCorrectionLevel: 'H', width: 250},
-                    (error:any) => {
-                        if (error) {
-                            console.log(error);
-                        } else {
-                            invoiceGenerated = true;
-                            awaitAndHandlePayment(newInvoice);
-                            setTimeout(() => invoiceCanvas?.scrollIntoView({ block: 'start',  behavior: 'smooth' }), 100);
-                        }
-                });
-            } catch (error:any) {
-                console.error(error);
-                toast.error(error);
-                submitDisabled = false;
-            }
-        }).catch((error) => {
-            console.error(error);
-            toast.error(error);
-            submitDisabled = false;
-        });
+    function redirectUnauthorized() {
+        toast.error("You're not allowed to do that");
+        goto("/");
     }
 
     function publishJobEvent() {
+        submitDisabled = true;
+
         const jobEvent: NDKEvent = new NDKEvent($ndk, {
             kind: 30402, // https://rb.gy/43la8
-            pubkey: user.hexpubkey(),
+            pubkey: author.hexpubkey(),
             content: description,
             created_at: unixTimeNowInSeconds(),
             tags: [
@@ -118,8 +85,8 @@
                 // user will overwrite each other. You can't have more than one.
                 ['d', slugify(title)],
                 ['title', title],
-                ['summary', tagline],
-                ['published_at', `${unixTimeNowInSeconds()}`],
+                ['summary', summary],
+                ['published_at', publishedAt],
                 ['location', location],
                 ['price', price],
                 ['t', contractType],
@@ -144,23 +111,21 @@
         })
     }
 
-    $: if($currentUser) user = $ndk.getUser({npub: $currentUser?.npub});
-
 </script>
 
 <svelte:head>
     <title>Ostrich Work: Post a new job</title>
     <meta
         name="description"
-        content="Post a new job on Ostrich Jobs. The first and best Nostr focused job board on the internet."
+        content="Edit your job on Ostrich Jobs. The first and best Nostr focused job board on the internet."
     />
 </svelte:head>
 
-<h2>Post a new job</h2>
+<h2>Edit Job</h2>
 
 <div>
     <form
-        on:submit|preventDefault={handleFormSubmit}
+        on:submit|preventDefault={publishJobEvent}
         id="newJobForm"
         class="w-full flex flex-col gap-12 items-start"
     >
@@ -183,7 +148,7 @@
         <TextInput
             fieldName="tagline"
             fieldLabel="Job Tagline"
-            bind:value={tagline}
+            bind:value={summary}
             placeholder="1 sentence summary or teaser"
             required={true}
         />
@@ -227,25 +192,8 @@
             disabled={submitDisabled}
             class="mx-auto flex flex-row py-2 px-4 focus:outline-none border-none no-underline text-2xl duration-1000 hover:duration-500 font-extrabold italic text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg disabled:hover:shadow-square-grey disabled:opacity-70"
         >
-            <span class="skew-x-12">Create new job posting</span>
+            <span class="skew-x-12">Update job posting</span>
         </button>
     </form>
 
-    <div id="invoiceContainer" class="mx-auto w-2/3 text-center {invoiceGenerated ? '' : 'hidden'}">
-        <h2>Just one more step before we publish your posting...</h2>
-        <h4 class="text-xl font-normal">Please pay this Lightning invoice for 10,000 sats.</h4>
-        {#if !invoicePaid}
-            <div id="awaitingPayment" class="flex flex-row gap-4 items-center text-lg font-medium justify-center mt-10 mb-4">
-                Awaiting payment...
-                <WaitingSpinner />
-            </div>
-            <a href={paymentRequestUrl} class="w-full">
-                <canvas id="invoice" class="mx-auto md:w-full"></canvas>
-            </a>
-        {:else}
-            <div class="mt-10 mb-4 flex flex-row gap-4 items-center text-lg font-medium justify-center text-green-500">
-            Paid! Thank you.
-            </div>
-        {/if}
-    </div>
 </div>

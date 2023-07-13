@@ -12,13 +12,13 @@ export function dateTomorrow() {
     return new Date(Date.now() + 3600 * 1000 * 24);
 }
 
-export function formattedDate(unixTimestamp: number): string {
+export function formattedDate(unixTimestampInSeconds: number): string {
     const options = {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
     };
-    const date = new Date(unixTimestamp);
+    const date = new Date(unixTimestampInSeconds * 1000);
     return date.toLocaleDateString('en-US', options);
 }
 
