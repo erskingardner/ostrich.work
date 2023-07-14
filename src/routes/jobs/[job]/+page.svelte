@@ -60,7 +60,7 @@
         if(user) {
             const message = new NDKEvent($ndk, {
                 kind: 4,
-                content: messageContent,
+                content: `New message via Ostrich.Work about your job posting "${title}"\n\n ${messageContent}`,
                 created_at: unixTimeNowInSeconds(),
                 pubkey: user?.hexpubkey() as string,
                 tags: [

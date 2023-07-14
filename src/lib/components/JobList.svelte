@@ -6,14 +6,16 @@
     import CircleXIcon from '$lib/elements/icons/CircleX.svelte';
 
     let jobEvents: NDKEvent[] = [];
+    let jobEventsDTags: string[] = [];
     let deletedJobEvents: NDKEvent[] = [];
 
     const jobSub = $ndk.subscribe({kinds: [30402], "#t": ['jobs', 'work', 'employment']}, {closeOnEose: false});
 
     jobSub.on('event', (event) => {
         if (event.id === "6757fa84f7fa2bec32e6849634ece41943692e46ea100b585a53ef6572e2356e") return // skip test event
-        if (!jobEvents.includes(event)) {
+        if (!jobEventsDTags.includes(event.tagId())) {
             jobEvents.push(event);
+            jobEventsDTags.push(event.tagId())
             jobEvents.sort((a,b) => parseInt(firstTagValue(b, 'published_at')) - parseInt(firstTagValue(a, 'published_at')));
             jobEvents = jobEvents;
         }
@@ -39,6 +41,7 @@
 
     let latestPostAt:string | undefined;
     $: if (jobEvents.length > 0) latestPostAt = mostRecentPostTime(jobEvents);
+    $: console.log(jobEvents)
 </script>
 
 <h2 class="flex flex-row items-baseline gap-4">
