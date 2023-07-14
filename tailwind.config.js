@@ -50,6 +50,7 @@ export default {
             boxShadow: {
                 'square-purple-sm': '4px 4px 0 #6d28d9',
                 'square-purple': '6px 6px 0 #6d28d9',
+                'square-purple-lg': '10px 10px 0 #6d28d9',
                 'square-grey-sm': '4px 4px 0 #444',
                 'square-grey': '6px 6px 0 #444',
                 'square-orange-sm': '4px 4px 0 #ea580c',

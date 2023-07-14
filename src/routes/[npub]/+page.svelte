@@ -2,7 +2,7 @@
     import type { NDKUser, NDKUserProfile } from '@nostr-dev-kit/ndk';
     import type { PageData } from './$types';
     import ndk from '$lib/stores/ndk';
-    import { Name, Avatar } from '@nostr-dev-kit/ndk-svelte-components';
+    import { Name, Avatar, truncatedNip05 } from '@nostr-dev-kit/ndk-svelte-components';
     import { goto } from '$app/navigation';
     import { displayableName } from '$lib/utils/helpers';
     import CheckBadgeIcon from '$lib/elements/icons/CheckBadge.svelte';
@@ -56,7 +56,7 @@
             </h1>
             {#if user.profile?.nip05}
                 <p class="flex flex-row gap-1 text-lg font-medium items-center my-0">
-                    {user.profile?.nip05}
+                    {truncatedNip05(user.profile)}
                     <CheckBadgeIcon />
                 </p>
             {/if}
