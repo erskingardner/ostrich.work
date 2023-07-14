@@ -2,27 +2,40 @@
     import JobCard from './JobCard.svelte';
     import ndk from '$lib/stores/ndk';
     import type { NDKEvent } from '@nostr-dev-kit/ndk';
-    import { mostRecentPostTime, sortEventsRevCron, firstTagValue } from '$lib/utils/helpers';
+    import { mostRecentPostTime, firstTagValue } from '$lib/utils/helpers';
     import CircleXIcon from '$lib/elements/icons/CircleX.svelte';
 
     let jobEvents: NDKEvent[] = [];
+    let jobEventsDTags: string[] = [];
+    let deletedJobEvents: NDKEvent[] = [];
 
     const jobSub = $ndk.subscribe({kinds: [30402], "#t": ['jobs', 'work', 'employment']}, {closeOnEose: false});
 
     jobSub.on('event', (event) => {
         if (event.id === "6757fa84f7fa2bec32e6849634ece41943692e46ea100b585a53ef6572e2356e") return // skip test event
-        if (!jobEvents.includes(event)) {
+        if (!jobEventsDTags.includes(event.tagId())) {
             jobEvents.push(event);
+            jobEventsDTags.push(event.tagId())
             jobEvents.sort((a,b) => parseInt(firstTagValue(b, 'published_at')) - parseInt(firstTagValue(a, 'published_at')));
             jobEvents = jobEvents;
         }
     });
 
-    jobSub.on('eose', () => {
-        // console.log('EOSE');
+    jobSub.on('notice', (notice) => {
+        console.log("NOTICE: ", notice);
     });
 
-    jobSub.on('notice', (notice) => {
+    const deletedJobsSub = $ndk.subscribe({kinds: [5], "#t": ['jobs', 'work', 'employment']}, {closeOnEose: false})
+
+    deletedJobsSub.on("event", (deletedEvent) => {
+        if (!deletedJobEvents.includes(deletedEvent)) {
+            deletedJobEvents.push(deletedEvent);
+            const newJobEvents = jobEvents.filter(event => event.tagId() !== deletedEvent.tagId() )
+            jobEvents = newJobEvents;
+        }
+    });
+
+    deletedJobsSub.on('notice', (notice) => {
         console.log("NOTICE: ", notice);
     });
 

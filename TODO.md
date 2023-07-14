@@ -4,7 +4,7 @@ The first and best Nostr jobs board
 
 ### 📥 Todo
 
--   Social sharing cards for jobs
+-   Social sharing cards for jobs https://ogp.me/#metadata
 -   My postings page / Company page
 -   Filter jobs by fields
 -   Search jobs by fields and keywords
@@ -12,10 +12,10 @@ The first and best Nostr jobs board
 
 ### 👨🏼‍💻 In Progress
 
--   DM poster
-
 ### ✅ Done
 
+-   Delete post
+-   DM poster
 -   Edit an existing job
 -   Figure out payment mechanism
     -   Create draft job on creation
