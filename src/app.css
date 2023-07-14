@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 a:not(.not-styled) {
-    @apply transition-colors duration-200 no-underline border-b border-orange-600 hover:border-0 hover:text-orange-600;
+    @apply transition-colors duration-200 no-underline border-b border-orange-600 hover:border-transparent hover:text-orange-600;
 }
 
 .popoverPanelLink {

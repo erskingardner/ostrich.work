@@ -5,16 +5,18 @@ The first and best Nostr jobs board
 ### 📥 Todo
 
 -   Social sharing cards for jobs
--   Edit an existing job
--   My postings page
--   company page
+-   My postings page / Company page
 -   Filter jobs by fields
 -   Search jobs by fields and keywords
+-   Zap jobs (50/50 site and poster? to boost job to top?)
 
 ### 👨🏼‍💻 In Progress
 
+-   DM poster
+
 ### ✅ Done
 
+-   Edit an existing job
 -   Figure out payment mechanism
     -   Create draft job on creation
     -   Show a page with a lightning invoice (or zap button)
