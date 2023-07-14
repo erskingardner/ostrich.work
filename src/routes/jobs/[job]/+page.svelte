@@ -13,12 +13,15 @@
     import ArrowCircleIcon from "$lib/elements/icons/ArrowCircle.svelte";
     import { Modal, Button, Tooltip } from "flowbite-svelte";
     import toast from "svelte-french-toast";
+    import { unix } from "dayjs";
 
     export let data;
 
     let user:NDKUser | undefined;
 
-    let modalOpen = false;
+    let deleteModalOpen = false;
+
+    let messageModalOpen = false;
     let messageContent:string = ""
 
     let job: NDKEvent;
@@ -61,9 +64,7 @@
                 created_at: unixTimeNowInSeconds(),
                 pubkey: user?.hexpubkey() as string,
                 tags: [
-                    ["p", job.pubkey],
-                    ["e", job.encode()],
-                    job.tagReference()
+                    ["p", job.pubkey]
                 ]
             })
 
@@ -81,16 +82,44 @@
             }, {
                 duration: 3000
             }).then(() => {
-                modalOpen = false;
+                messageModalOpen = false;
                 messageContent = "";
             });
         }
 
     }
 
-    // async function deletePost() {
-    //     alert("Are you sure you want to delete this post?")
-    // }
+    async function deletePost() {
+        const deleteEvent = new NDKEvent($ndk, {
+            kind: 5,
+            pubkey: job.pubkey,
+            content: 'Event deleted by owner',
+            tags: [
+                ['t', 'job'],
+                ['t', 'work'],
+                ['t', 'employment'],
+                job.tagReference()
+            ],
+            created_at: unixTimeNowInSeconds()
+        });
+
+        if (!$ndk.signer) {
+            const signer = new NDKNip07Signer();
+            $ndk.signer = signer;
+        }
+
+        toast.promise(deleteEvent.publish(), {
+            loading: "Deleteing job post...",
+            success: "Job post deleted!",
+            error: "Sorry, something went wrong deleting the post. Try again."
+        }, {
+            duration: 3000
+        }).then(() => {
+            deleteModalOpen = false;
+        });
+
+
+    }
 
     $: if($currentUser) user = $ndk.getUser({npub: $currentUser.npub});
 </script>
@@ -103,15 +132,28 @@
     />
 </svelte:head>
 
-<Modal title="Message the job poster" bind:open={modalOpen} outsideclose class="not-prose rounded-none">
+<Modal title="Delete this post" bind:open={deleteModalOpen} outsideclose class="not-prose rounded-none">
+    <p>Are you sure you want to delete this post? There is no way to undo this.</p>
+    <svelte:fragment slot='footer'>
+        <div class="flex flex-row gap-8 items-center justify-end w-full">
+            <Button on:click={deletePost} class="shrink-0 rounded-none py-2 px-4 transition-all text-center focus:outline-none border-none no-underline text-base duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 dark:bg-purple-700 hover:dark:bg-purple-700 hover:bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg">
+                <span class="skew-x-12 block">Yes, please delete this post</span>
+            </Button>
+        </div>
+    </svelte:fragment>
+</Modal>
+
+<Modal title="Message the job poster" bind:open={messageModalOpen} outsideclose class="not-prose rounded-none">
     <form>
         <textarea name='messageContent' bind:value={messageContent} placeholder="What do you want to say?" class="bg-transparent w-full h-48" />
     </form>
     <svelte:fragment slot='footer'>
-        <div class="flex flex-row gap-8 items-start">
+        <div class="flex flex-row gap-8 items-start justify-between">
             <span class="text-sm line-clamp-2">Your message will be sent as a Nostr DM to the job poster. You'll be able to find the conversation in all your Nostr clients.
             </span>
-            <Button on:click={sendDirectMessage} class="shrink-0 rounded-none py-2 px-4 transition-all text-center focus:outline-none border-none no-underline text-base duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 dark:bg-purple-700 hover:dark:bg-purple-700 hover:bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg">Send message</Button>
+            <Button on:click={sendDirectMessage} class="shrink-0 rounded-none py-2 px-4 transition-all text-center focus:outline-none border-none no-underline text-base duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 dark:bg-purple-700 hover:dark:bg-purple-700 hover:bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg">
+                <span class="skew-x-12 block">Send message</span>
+            </Button>
         </div>
     </svelte:fragment>
 </Modal>
@@ -163,7 +205,7 @@
                     <JobStatPills {location} {price} {contractType} {jobCategories} />
                 </div>
                 <div>
-                    <button disabled={$currentUser?.npub ? false : true} on:click={() => modalOpen = true} class="w-full py-2 px-4 transition-all text-center focus:outline-none border-none no-underline text-xl duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg">
+                    <button disabled={$currentUser?.npub ? false : true} on:click={() => messageModalOpen = true} class="w-full py-2 px-4 transition-all text-center focus:outline-none border-none no-underline text-xl duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg">
                         <span class="skew-x-12 block">Message the poster</span>
                     </button>
                 </div>
@@ -176,11 +218,11 @@
                             <span class="skew-x-12 block">Edit your post</span>
                         </a>
                     </div>
-                    <!-- <div class="flex flex-row justify-end">
-                        <button on:click={deletePost} class="w-full py-2 px-4 transition-all text-center focus:outline-none border-none no-underline text-xl duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg">
+                    <div class="flex flex-row justify-end">
+                        <button on:click={() => deleteModalOpen = true} class="w-full py-2 px-4 transition-all text-center focus:outline-none border-none no-underline text-xl duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg">
                             <span class="skew-x-12 block">Delete this post</span>
                         </button>
-                    </div> -->
+                    </div>
                 {/if}
             </div>
         </div>
