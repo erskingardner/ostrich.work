@@ -6,9 +6,13 @@ The first and best Nostr jobs board
 
 -   Social sharing cards for jobs https://ogp.me/#metadata
 -   My postings page / Company page
--   Filter jobs by fields
--   Search jobs by fields and keywords
--   Zap jobs (50/50 site and poster? to boost job to top?)
+-   Subscribe to new jobs via DMs (or telegram?)
+-   Create Ostrich npub so I can post all new jobs automatically there.
+
+-   Caching
+    -   Zap jobs (80/20 site and poster? to boost job to top?)
+    -   Filter jobs by fields
+    -   Search jobs by fields and keywords
 
 ### 👨🏼‍💻 In Progress
 

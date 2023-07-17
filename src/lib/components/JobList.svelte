@@ -4,6 +4,7 @@
     import type { NDKEvent } from '@nostr-dev-kit/ndk';
     import { mostRecentPostTime, firstTagValue } from '$lib/utils/helpers';
     import CircleXIcon from '$lib/elements/icons/CircleX.svelte';
+    import { blacklist } from '$lib/data/blacklist';
 
     let jobEvents: NDKEvent[] = [];
     let jobEventsDTags: string[] = [];
@@ -13,6 +14,7 @@
 
     jobSub.on('event', (event) => {
         if (event.id === "6757fa84f7fa2bec32e6849634ece41943692e46ea100b585a53ef6572e2356e") return // skip test event
+        if (blacklist.includes(event.pubkey)) return // skip blacklisted pubkeys
         if (!jobEventsDTags.includes(event.tagId())) {
             jobEvents.push(event);
             jobEventsDTags.push(event.tagId())
