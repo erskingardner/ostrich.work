@@ -1,18 +1,20 @@
 <script lang="ts">
     import { NDKEvent, NDKUser } from '@nostr-dev-kit/ndk';
+    import type { NDKTag } from '@nostr-dev-kit/ndk';
     import { NDKNip07Signer } from '@nostr-dev-kit/ndk';
     import ndk from '$lib/stores/ndk';
     import { currentUser } from '$lib/stores/currentUser';
     import { unixTimeNowInSeconds, slugify } from '$lib/utils/helpers';
-    import MarkdownTextarea from '$lib/components/Forms/MarkdownTextarea.svelte';
     import { goto } from '$app/navigation';
     import toast from 'svelte-french-toast';
     import { browser } from '$app/environment';
-    import TextInput from '$lib/components/Forms/TextInput.svelte';
     import { Select, MultiSelect } from 'flowbite-svelte';
-    import { contractTypeOptions, categoryOptions } from '$lib/data/formOptions';
-    import QRCode from 'qrcode';
+    import { contractTypeOptions, categoryOptions, currencyOptions, frequencyOptions } from '$lib/data/formOptions';
+    import MarkdownTextarea from '$lib/components/Forms/MarkdownTextarea.svelte';
+    import TextInput from '$lib/components/Forms/TextInput.svelte';
     import WaitingSpinner from '$lib/components/WaitingSpinner.svelte';
+    import PriceInput from '$lib/components/Forms/PriceInput.svelte';
+    import QRCode from 'qrcode';
     import { dev } from '$app/environment';
 
     // 🤮 JavaScript
@@ -36,7 +38,9 @@
     let location:string;
     let tagline:string;
     let contractType:string;
-    let price:string;
+    let currency:string;
+    let price:number;
+    let frequency:string;
     let description: string = "";
     let categories:string[];
 
@@ -73,7 +77,7 @@
         submitDisabled = true;
 
         wallet.createInvoice({
-            amount: 10000,
+            amount: 20_000,
             memo: `Job posting on Ostrich.work: ${title}`,
             out: false
         })
@@ -107,7 +111,24 @@
         });
     }
 
+    function generatePriceTag(): NDKTag {
+        const priceTag: NDKTag = ["price"]
+        if(currency === 'sats') {
+            // Convert sats to btc
+            priceTag.push((price / 100_000_000).toString());
+            priceTag.push("btc");
+        } else {
+            priceTag.push(price.toString());
+            priceTag.push(currency);
+        }
+        if (frequency !== 'once') priceTag.push(frequency);
+        return priceTag;
+    }
+
     function publishJobEvent() {
+        // Calculate and formulate the price tag
+        const priceTag = generatePriceTag();
+
         const jobEvent: NDKEvent = new NDKEvent($ndk, {
             kind: 30402, // https://rb.gy/43la8
             pubkey: user.hexpubkey(),
@@ -121,7 +142,7 @@
                 ['summary', tagline],
                 ['published_at', `${unixTimeNowInSeconds()}`],
                 ['location', location],
-                ['price', price],
+                priceTag,
                 ['t', contractType],
                 ['t', 'job'],
                 ['t', 'work'],
@@ -145,7 +166,6 @@
     }
 
     $: if($currentUser) user = $ndk.getUser({npub: $currentUser?.npub});
-
 </script>
 
 <svelte:head>
@@ -198,12 +218,10 @@
                     required
                 />
             </label>
-            <TextInput
-                fieldName="price"
-                fieldLabel="Salary or Wage"
+            <PriceInput
+                bind:currency={currency}
                 bind:value={price}
-                placeholder="E.g. $80,000 per year"
-                required={true}
+                bind:frequency={frequency}
             />
         </div>
         <label for="categories" class="flex flex-col gap-1 w-full font-bold italic text-lg">
@@ -233,7 +251,7 @@
 
     <div id="invoiceContainer" class="mx-auto w-2/3 text-center {invoiceGenerated ? '' : 'hidden'}">
         <h2>Just one more step before we publish your posting...</h2>
-        <h4 class="text-xl font-normal">Please pay this Lightning invoice for 10,000 sats.</h4>
+        <h4 class="text-xl font-normal">Please pay this Lightning invoice for 20,000 sats.</h4>
         {#if !invoicePaid}
             <div id="awaitingPayment" class="flex flex-row gap-4 items-center text-lg font-medium justify-center mt-10 mb-4">
                 Awaiting payment...
