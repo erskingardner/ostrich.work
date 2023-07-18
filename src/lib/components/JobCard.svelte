@@ -14,7 +14,7 @@
     let tagline:string = firstTagValue(job, "summary");
     let contractType:string;
     let jobCategories:string[] = [];
-    let price:string | undefined = firstTagValue(job, "price");
+    let priceTags: NDKTag[] = job.getMatchingTags("price");
     let publishedAt:number = parseInt(firstTagValue(job, "published_at"));
     let author: NDKUser = $ndk.getUser({hexpubkey: job.pubkey});
 
@@ -52,5 +52,5 @@
         <h3 class="mt-0 font-bold">{title}</h3>
     </div>
     <span class='mb-6 block'>{tagline}</span>
-    <JobStatPills {location} {price} {contractType} {jobCategories} />
+    <JobStatPills {location} {priceTags} {contractType} {jobCategories} />
 </a>

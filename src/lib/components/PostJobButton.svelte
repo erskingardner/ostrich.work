@@ -53,7 +53,7 @@
         class="text-center md:text-start text-lg pt-1.5 font-medium bg-clip-text text-transparent bg-gradient-to-r
     from-orange-400 to-orange-600"
     >
-        ⭐ Special launch pricing ⭐<br />Just 10,000 sats per job post
+        ⭐ Just 20,000 sats per job post
     </p>
 </div>
 

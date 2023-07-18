@@ -17,3 +17,22 @@ export const contractTypeOptions = [
     { value: 'part-time', name: 'Part-time' },
     { value: 'contract', name: 'Contract' }
 ];
+
+export const currencyOptions = [
+    { value: 'sats', name: 'Satoshis' },
+    { value: 'btc', name: 'BTC' },
+    { value: 'usd', name: 'USD' },
+    { value: 'eur', name: 'EUR' },
+    { value: 'gbp', name: 'GBP' },
+    { value: 'chf', name: 'CHF' }
+];
+
+export const frequencyOptions = [
+    { value: 'once', name: 'Once' },
+    { value: 'hour', name: 'Per hour' },
+    { value: 'day', name: 'Per day' },
+    { value: 'week', name: 'Per hour' },
+    { value: 'week', name: 'Per week' },
+    { value: 'month', name: 'Per month' },
+    { value: 'year', name: 'Per year' }
+];
