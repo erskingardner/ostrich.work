@@ -9,13 +9,14 @@
     import toast from 'svelte-french-toast';
     import { browser } from '$app/environment';
     import { Select, MultiSelect } from 'flowbite-svelte';
-    import { contractTypeOptions, categoryOptions, currencyOptions, frequencyOptions } from '$lib/data/formOptions';
+    import { contractTypeOptions, categoryOptions } from '$lib/data/formOptions';
     import MarkdownTextarea from '$lib/components/Forms/MarkdownTextarea.svelte';
     import TextInput from '$lib/components/Forms/TextInput.svelte';
     import WaitingSpinner from '$lib/components/WaitingSpinner.svelte';
     import PriceInput from '$lib/components/Forms/PriceInput.svelte';
     import QRCode from 'qrcode';
     import { dev } from '$app/environment';
+    import { format } from 'mathjs'
 
     // 🤮 JavaScript
     import _LNBits from "lnbits";
@@ -104,7 +105,7 @@
                 toast.error(error);
                 submitDisabled = false;
             }
-        }).catch((error) => {
+        }).catch((error:any) => {
             console.error(error);
             toast.error(error);
             submitDisabled = false;
@@ -115,10 +116,10 @@
         const priceTag: NDKTag = ["price"]
         if(currency === 'sats') {
             // Convert sats to btc
-            priceTag.push((price / 100_000_000).toString());
+            priceTag.push(format((price / 100_000_000), {notation: 'fixed'}));
             priceTag.push("btc");
         } else {
-            priceTag.push(price.toString());
+            priceTag.push(format(price, {notation: 'fixed'}));
             priceTag.push(currency);
         }
         if (frequency !== 'once') priceTag.push(frequency);
@@ -166,6 +167,7 @@
     }
 
     $: if($currentUser) user = $ndk.getUser({npub: $currentUser?.npub});
+    $: if (price && currency) console.log(generatePriceTag());
 </script>
 
 <svelte:head>

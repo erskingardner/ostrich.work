@@ -14,7 +14,7 @@
     let currency: string | undefined;
     let price: string | undefined;
 
-    if (priceTags.length > 0) {
+    if (priceTags?.length > 0) {
         price = priceTags[0][1]
         currency = priceTags[0][2]
         if (priceTags[0].length === 4) frequency = priceTags[0][3]
@@ -30,7 +30,7 @@
         <MapPinIcon class="w-5 h-5" />
         {location}
     </span>
-    {#if priceTags.length > 0}
+    {#if priceTags?.length > 0}
         <span class="flex flex-row gap-1.5 items-center bg-green-800 pl-2 pr-3 py-1 rounded-full text-white">
             <BanknotesIcon class="w-5 h-5" />
             {price}
