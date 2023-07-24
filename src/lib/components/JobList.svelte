@@ -43,7 +43,6 @@
 
     let latestPostAt:string | undefined;
     $: if (jobEvents.length > 0) latestPostAt = mostRecentPostTime(jobEvents);
-    $: console.log(jobEvents)
 </script>
 
 <h2 class="flex flex-row items-baseline gap-4">

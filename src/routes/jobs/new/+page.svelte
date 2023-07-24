@@ -167,7 +167,6 @@
     }
 
     $: if($currentUser) user = $ndk.getUser({npub: $currentUser?.npub});
-    $: if (price && currency) console.log(generatePriceTag());
 </script>
 
 <svelte:head>
