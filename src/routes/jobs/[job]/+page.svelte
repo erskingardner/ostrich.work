@@ -31,7 +31,6 @@
     let summary:string;
     let contractType:string;
     let jobCategories:string[] = [];
-    let price:string | undefined;
     let priceTags: NDKTag[];
     let publishedAt:number;
     let author: NDKUser;
