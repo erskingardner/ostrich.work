@@ -31,7 +31,7 @@
     let summary:string;
     let contractType:string;
     let jobCategories:string[] = [];
-    let price:string | undefined;
+    let priceTags: NDKTag[];
     let publishedAt:number;
     let author: NDKUser;
     let hashtags: NDKTag[]
@@ -43,7 +43,7 @@
         description = job.content;
         location = firstTagValue(job, "location");
         summary = firstTagValue(job, "summary");
-        price = firstTagValue(job, "price");
+        priceTags = job.getMatchingTags("price");
         publishedAt = parseInt(firstTagValue(job, "published_at"));
         author = $ndk.getUser({hexpubkey: job.pubkey});
         hashtags = job.getMatchingTags("t");
@@ -202,7 +202,7 @@
                     </div>
                 </div>
                 <div>
-                    <JobStatPills {location} {price} {contractType} {jobCategories} />
+                    <JobStatPills {location} {priceTags} {contractType} {jobCategories} />
                 </div>
                 <div>
                     <button disabled={$currentUser?.npub ? false : true} on:click={() => messageModalOpen = true} class="w-full py-2 px-4 transition-all text-center focus:outline-none border-none no-underline text-xl duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg">
