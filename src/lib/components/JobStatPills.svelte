@@ -4,6 +4,7 @@
     import BanknotesIcon from "$lib/elements/icons/Banknotes.svelte";
     import BriefcaseIcon from "$lib/elements/icons/Briefcase.svelte";
     import TagIcon from "$lib/elements/icons/Tag.svelte";
+    import { format } from "mathjs";
 
     export let location: string;
     export let priceTags: NDKTag[];
@@ -16,6 +17,12 @@
 
     if (priceTags?.length > 0) {
         price = priceTags[0][1]
+
+        // Fix broken scientific notation
+        if (price.includes("e-")) {
+            price = format(parseFloat(price), {notation: 'fixed'});
+        }
+
         currency = priceTags[0][2]
         if (priceTags[0].length === 4) frequency = priceTags[0][3]
     }
