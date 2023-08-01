@@ -5,7 +5,6 @@
     import { currentUser } from '$lib/stores/currentUser';
     import ndk from '$lib/stores/ndk';
     import { NDKNip07Signer } from '@nostr-dev-kit/ndk';
-    import { onMount } from 'svelte';
     import { dateTomorrow } from '$lib/utils/helpers';
     import { goto } from '$app/navigation';
     import { browser } from '$app/environment';

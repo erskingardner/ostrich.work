@@ -13,6 +13,8 @@ const ndk = new NDK({
     debug: false
 });
 
+ndk.connect().then(() => console.log('NDK Connected'));
+
 // Create a singleton instance that is the default export
 const ndkStore = writable(ndk);
 

@@ -6,9 +6,9 @@
     import TagIcon from "$lib/elements/icons/Tag.svelte";
     import { format } from "mathjs";
 
-    export let location: string;
+    export let location: string | undefined;
     export let priceTags: NDKTag[];
-    export let contractType: string;
+    export let contractType: string | undefined;
     export let jobCategories: string[];
 
     let frequency: string | undefined;
@@ -29,14 +29,18 @@
 </script>
 
 <div class="flex flex-row gap-2 items-start text-sm flex-wrap">
-    <span class="flex flex-row gap-1.5 items-center bg-orange-800 pl-2 pr-3 py-1 rounded-full text-white capitalize">
-        <BriefcaseIcon class="w-5 h-5" />
-        {contractType}
-    </span>
-    <span class="flex flex-row gap-1.5 items-center bg-blue-700 pl-2 pr-3 py-1 rounded-full text-white">
-        <MapPinIcon class="w-5 h-5" />
-        {location}
-    </span>
+    {#if contractType}
+        <span class="flex flex-row gap-1.5 items-center bg-orange-800 pl-2 pr-3 py-1 rounded-full text-white capitalize">
+            <BriefcaseIcon class="w-5 h-5" />
+            {contractType}
+        </span>
+    {/if}
+    {#if location}
+        <span class="flex flex-row gap-1.5 items-center bg-blue-700 pl-2 pr-3 py-1 rounded-full text-white">
+            <MapPinIcon class="w-5 h-5" />
+            {location}
+        </span>
+    {/if}
     {#if priceTags?.length > 0}
         <span class="flex flex-row gap-1.5 items-center bg-green-800 pl-2 pr-3 py-1 rounded-full text-white">
             <BanknotesIcon class="w-5 h-5" />

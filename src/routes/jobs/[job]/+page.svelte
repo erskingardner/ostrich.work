@@ -1,11 +1,10 @@
 <script lang="ts">
-    import { displayableName, firstTagValue, formattedDate, unixTimeNowInSeconds } from "$lib/utils/helpers.js";
+    import { displayableName, formattedDate, unixTimeNowInSeconds } from "$lib/utils/helpers.js";
     import ndk from "$lib/stores/ndk.js";
     import { NDKEvent, type NDKUser, type NDKTag, NDKNip07Signer } from "@nostr-dev-kit/ndk";
     import { Avatar, truncatedNip05 } from "@nostr-dev-kit/ndk-svelte-components";
     import { cleanMarkdown } from "$lib/utils/markdown.js";
     import JobStatPills from "$lib/components/JobStatPills.svelte";
-    import { contractTypeOptions, categoryOptions } from "$lib/data/formOptions.js";
     import { currentUser } from "$lib/stores/currentUser.js";
     import ClockIcon from "$lib/elements/icons/Clock.svelte";
     import LinkOutIcon from "$lib/elements/icons/LinkOut.svelte";
@@ -13,7 +12,6 @@
     import ArrowCircleIcon from "$lib/elements/icons/ArrowCircle.svelte";
     import { Modal, Button, Tooltip } from "flowbite-svelte";
     import toast from "svelte-french-toast";
-    import { unix } from "dayjs";
 
     export let data;
 
@@ -24,47 +22,17 @@
     let messageModalOpen = false;
     let messageContent:string = ""
 
-    let job: NDKEvent;
-    let title:string;
-    let description:string;
-    let location:string;
-    let summary:string;
-    let contractType:string;
-    let jobCategories:string[] = [];
-    let priceTags: NDKTag[];
-    let publishedAt:number;
-    let author: NDKUser;
-    let hashtags: NDKTag[]
-
-
-    $ndk.fetchEvent(data.jobAddr).then((event) => {
-        job = event as NDKEvent;
-        title = firstTagValue(job, "title");
-        description = job.content;
-        location = firstTagValue(job, "location");
-        summary = firstTagValue(job, "summary");
-        priceTags = job.getMatchingTags("price");
-        publishedAt = parseInt(firstTagValue(job, "published_at"));
-        author = $ndk.getUser({hexpubkey: job.pubkey});
-        hashtags = job.getMatchingTags("t");
-        hashtags.forEach((tag) => {
-            let contractTypeMatch = contractTypeOptions.find(element => element.value === tag[1]);
-            if (contractTypeMatch) contractType = contractTypeMatch.name;
-
-            let categoryMatch = categoryOptions.find(element => element.value === tag[1]);
-            if (categoryMatch) jobCategories.push(categoryMatch.name);
-        });
-    });
+    const author: NDKUser = $ndk.getUser({hexpubkey: data.authorPubkey});
 
     async function sendDirectMessage() {
         if(user) {
             const message = new NDKEvent($ndk, {
                 kind: 4,
-                content: `New message via Ostrich.Work about your job posting "${title}"\n\n ${messageContent}`,
+                content: `New message via Ostrich.Work about your job posting "${data.title}"\n\n ${messageContent}`,
                 created_at: unixTimeNowInSeconds(),
                 pubkey: user?.hexpubkey() as string,
                 tags: [
-                    ["p", job.pubkey]
+                    ["p", data.authorPubkey as string]
                 ]
             })
 
@@ -92,13 +60,13 @@
     async function deletePost() {
         const deleteEvent = new NDKEvent($ndk, {
             kind: 5,
-            pubkey: job.pubkey,
+            pubkey: data.authorPubkey as string,
             content: 'Event deleted by owner',
             tags: [
                 ['t', 'job'],
                 ['t', 'work'],
                 ['t', 'employment'],
-                job.tagReference()
+                data.tagReference as NDKTag
             ],
             created_at: unixTimeNowInSeconds()
         });
@@ -125,11 +93,15 @@
 </script>
 
 <svelte:head>
-	<title>Ostrich Work: {title}</title>
+	<title>Ostrich Work: {data.title}</title>
     <meta
         name="description"
-        content={`Ostrich Work Job - ${title}: ${summary}`}
+        content={`Ostrich Work Job - ${data.title}: ${data.summary}`}
     />
+    <meta property='og:title' content={data.title} />
+    <meta property='og:type' content='website' />
+    <meta property='og:url' content="https://ostrich.work/jobs/{data.jobAddr}" />
+    <meta property='og:image' content={data.authorImage} />
 </svelte:head>
 
 <Modal title="Delete this post" bind:open={deleteModalOpen} outsideclose class="not-prose rounded-none">
@@ -158,16 +130,16 @@
     </svelte:fragment>
 </Modal>
 
-{#key job}
-    {#if job}
+{#key data.jobAddr}
+    {#if data.jobAddr}
         <div class="flex flex-col lg:flex-row gap-20 items-start justify-between">
             <div class="prose dark:prose-invert xl:max-w-4xl">
-                <h1 class="mt-10 mb-2 text-orange-600 border-b-2 border-b-orange-500 pb-1 italic">{title}</h1>
-                <span class="italic text-lg font-bold">{summary}</span>
+                <h1 class="mt-10 mb-2 text-orange-600 border-b-2 border-b-orange-500 pb-1 italic">{data.title}</h1>
+                <span class="italic text-lg font-bold">{data.summary}</span>
                 <div class="flex flex-col gap-8">
                     <div>
                         <h2 class="text-orange-600 border-b-2 border-b-orange-500 italic">Job Description</h2>
-                        <div class="markdownContent">{@html cleanMarkdown(description)}</div>
+                        <div class="markdownContent">{@html cleanMarkdown(data.description)}</div>
                     </div>
                 </div>
             </div>
@@ -194,15 +166,20 @@
                 <div>
                     <div class="flex flex-row gap-1 items-center">
                         <ClockIcon class="w-5 h-5" />
-                        First posted: {formattedDate(publishedAt)}
+                        First posted: {formattedDate(data.publishedAt)}
                     </div>
                     <div class="flex flex-row gap-1 items-center">
                         <ArrowCircleIcon class="w-5 h-5" />
-                        Last updated: {formattedDate(parseInt(job.created_at))}
+                        Last updated: {formattedDate(data.createdAt)}
                     </div>
                 </div>
                 <div>
-                    <JobStatPills {location} {priceTags} {contractType} {jobCategories} />
+                    <JobStatPills
+                        location={data.location}
+                        priceTags={data.priceTags}
+                        contractType={data.contractType}
+                        jobCategories={data.jobCategories}
+                    />
                 </div>
                 <div>
                     <button disabled={$currentUser?.npub ? false : true} on:click={() => messageModalOpen = true} class="w-full py-2 px-4 transition-all text-center focus:outline-none border-none no-underline text-xl duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg">
