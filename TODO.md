@@ -4,7 +4,6 @@ The first and best Nostr jobs board
 
 ### 📥 Todo
 
--   Social sharing cards for jobs https://ogp.me/#metadata
 -   My postings page / Company page
 -   Subscribe to new jobs via DMs (or telegram?)
 -   Create Ostrich npub so I can post all new jobs automatically there.
@@ -18,6 +17,7 @@ The first and best Nostr jobs board
 
 ### ✅ Done
 
+-   Social sharing cards for jobs https://ogp.me/#metadata
 -   Delete post
 -   DM poster
 -   Edit an existing job
