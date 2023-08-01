@@ -46,11 +46,9 @@ export const load: PageServerLoad = async ({ params }) => {
         });
 
         const author = ndk.getUser({ hexpubkey: job.pubkey });
-        await author.fetchProfile().then(() => {
-            authorImage = author.profile?.image
-            authorName = displayableName(author)
-        });
-
+        await author.fetchProfile();
+        authorImage = author.profile?.image;
+        authorName = displayableName(author);
         tagReference = job.tagReference();
     } else {
         throw error(404, 'Job listing not found');

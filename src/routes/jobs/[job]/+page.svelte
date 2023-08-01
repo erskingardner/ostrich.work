@@ -93,17 +93,17 @@
 </script>
 
 <svelte:head>
-	<title>{data.title} from {data.authorName}</title>
+	<title>{data.title} from @{data.authorName}</title>
     <meta name="description" content={data.summary} />
 
-    <meta property='og:title' content="{data.title} from {data.authorName}" />
+    <meta property='og:title' content="{data.title} from @{data.authorName}" />
     <meta property='og:type' content='website' />
     <meta property='og:url' content="https://ostrich.work/jobs/{data.jobAddr}" />
     <meta property='og:image' content={data.authorImage} />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta property="twitter:domain" content="ostrich.work" />
-    <meta name="twitter:title" content="{data.title} from {data.authorName}" />
+    <meta name="twitter:title" content="{data.title} from @{data.authorName}" />
     <meta name="twitter:description" content={data.summary} />
     <meta property="twitter:url" content="https://ostrich.work/jobs/{data.jobAddr}" />
     <meta name="twitter:image" content={data.authorImage} />
