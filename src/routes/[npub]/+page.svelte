@@ -22,16 +22,23 @@
 </script>
 
 <svelte:head>
-    <title>Ostrich Work: {name} </title>
+    <title>@{name}</title>
     <meta
         name="description"
-        content={`Ostrich Work: User profile for ${name}`}
+        content={`User profile for @${name} on Ostrich Work`}
     />
-    <meta property='og:title' content={name} />
+    <meta property='og:title' content="@{name}" />
     <meta property='og:type' content='profile' />
     <meta property='og:profile:username' content={data.npub} />
     <meta property='og:url' content="https://ostrich.work/{data.npub}" />
     <meta property='og:image' content={data.userProfile?.image} />
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="ostrich.work">
+    <meta property="twitter:url" content="https://ostrich.work/{data.npub}">
+    <meta name="twitter:title" content="@{name}">
+    <meta name="twitter:description" content="User profile for @{name} on Ostrich Work">
+    <meta name="twitter:image" content={data.userProfile?.image} />
 </svelte:head>
 
 

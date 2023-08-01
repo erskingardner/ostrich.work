@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 import ndkStore from '$lib/stores/ndk';
 import { get } from 'svelte/store';
 import type { NDKEvent, NDKTag } from '@nostr-dev-kit/ndk';
-import { firstTagValue } from '$lib/utils/helpers';
+import { displayableName, firstTagValue } from '$lib/utils/helpers';
 import { contractTypeOptions, categoryOptions } from '$lib/data/formOptions.js';
 import { error } from '@sveltejs/kit';
 
@@ -18,6 +18,7 @@ export const load: PageServerLoad = async ({ params }) => {
     let publishedAt: number;
     let authorImage: string | undefined;
     let authorPubkey: string;
+    let authorName: string | undefined;
     let hashtags: NDKTag[] = [];
     const jobCategories: string[] = [];
     let contractType: string | undefined;
@@ -43,8 +44,11 @@ export const load: PageServerLoad = async ({ params }) => {
             const categoryMatch = categoryOptions.find((element) => element.value === tag[1]);
             if (categoryMatch) jobCategories.push(categoryMatch.name);
         });
+
         const author = ndk.getUser({ hexpubkey: job.pubkey });
-        authorImage = await author.fetchProfile().then(() => author.profile?.image);
+        await author.fetchProfile();
+        authorImage = author.profile?.image;
+        authorName = displayableName(author);
         tagReference = job.tagReference();
     } else {
         throw error(404, 'Job listing not found');
@@ -53,6 +57,7 @@ export const load: PageServerLoad = async ({ params }) => {
     return {
         authorPubkey,
         authorImage,
+        authorName,
         contractType,
         description,
         hashtags,
