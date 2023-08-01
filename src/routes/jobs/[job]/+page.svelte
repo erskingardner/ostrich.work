@@ -93,15 +93,21 @@
 </script>
 
 <svelte:head>
-	<title>Ostrich Work: {data.title}</title>
-    <meta
-        name="description"
-        content={`Ostrich Work Job - ${data.title}: ${data.summary}`}
-    />
-    <meta property='og:title' content={data.title} />
+	<title>{data.title} from {data.authorName}</title>
+    <meta name="description" content={data.summary} />
+
+    <meta property='og:title' content="{data.title} from {data.authorName}" />
     <meta property='og:type' content='website' />
     <meta property='og:url' content="https://ostrich.work/jobs/{data.jobAddr}" />
     <meta property='og:image' content={data.authorImage} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:domain" content="ostrich.work" />
+    <meta name="twitter:title" content="{data.title} from {data.authorName}" />
+    <meta name="twitter:description" content={data.summary} />
+    <meta property="twitter:url" content="https://ostrich.work/jobs/{data.jobAddr}" />
+    <meta name="twitter:image" content={data.authorImage} />
+
 </svelte:head>
 
 <Modal title="Delete this post" bind:open={deleteModalOpen} outsideclose class="not-prose rounded-none">
