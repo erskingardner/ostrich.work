@@ -9,7 +9,7 @@
     import { goto } from '$app/navigation';
     import { browser } from '$app/environment';
     import toast, { Toaster } from 'svelte-french-toast';
-    import { Button, Modal } from 'flowbite-svelte';
+    import { Modal } from 'flowbite-svelte';
 
     let savestore = false;
     let signerModal = false;
@@ -84,18 +84,21 @@
             <a
                 href="https://getalby.com?utm_source=ostrichWork&utm_medium=signerModal"
                 class="not-styled mx-auto flex flex-row py-2 px-4 focus:outline-none border-none no-underline text-lg transition-all duration-1000 hover:duration-500 font-extrabold italic text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg disabled:hover:shadow-square-grey disabled:opacity-70"
+                target="_blank"
             >
                 <span class="skew-x-12">Get Alby</span>
             </a>
             <a
                 href="https://github.com/fiatjaf/nos2x"
                 class="not-styled mx-auto flex flex-row py-2 px-4 focus:outline-none border-none no-underline text-lg transition-all duration-1000 hover:duration-500 font-extrabold italic text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg disabled:hover:shadow-square-grey disabled:opacity-70"
+                target="_blank"
             >
                 <span class="skew-x-12">Get nos2X</span>
             </a>
             <a
                 href="https://nostr.how?utm_source=ostrichWork&utm_medium=signerModal"
                 class="not-styled mx-auto flex flex-row py-2 px-4 focus:outline-none border-none no-underline text-lg transition-all duration-1000 hover:duration-500 font-extrabold italic text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg disabled:hover:shadow-square-grey disabled:opacity-70"
+                target="_blank"
             >
                 <span class="skew-x-12">Learn more</span>
             </a>
