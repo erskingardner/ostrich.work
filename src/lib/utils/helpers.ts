@@ -1,4 +1,4 @@
-import type { NDKEvent, NDKUser, NDKUserProfile } from '@nostr-dev-kit/ndk';
+import type { NDKEvent, NDKUser } from '@nostr-dev-kit/ndk';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { typeOf } from 'mathjs';
