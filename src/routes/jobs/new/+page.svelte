@@ -16,10 +16,11 @@
     import PriceInput from '$lib/components/Forms/PriceInput.svelte';
     import QRCode from 'qrcode';
     import { dev } from '$app/environment';
-    import { format } from 'mathjs'
+    import { format } from 'mathjs';
+    import { pa } from '@accuser/svelte-plausible-analytics';
 
     // 🤮 JavaScript
-    import _LNBits from "lnbits";
+    import _LNBits from 'lnbits';
     let LNBits: any;
 
     if (_LNBits.default) {
@@ -28,28 +29,28 @@
         LNBits = _LNBits;
     }
 
-    if(!$currentUser && browser) {
-        toast.error("Unauthorized")
-        goto("/")
+    if (!$currentUser && browser) {
+        toast.error('Unauthorized');
+        goto('/');
     }
 
-    let user:NDKUser;
+    let user: NDKUser;
 
-    let title:string;
-    let location:string;
-    let tagline:string;
-    let contractType:string;
-    let currency:string;
-    let price:number;
-    let frequency:string;
-    let description: string = "";
-    let categories:string[];
+    let title: string;
+    let location: string;
+    let tagline: string;
+    let contractType: string;
+    let currency: string;
+    let price: number;
+    let frequency: string;
+    let description: string = '';
+    let categories: string[];
 
-    let submitDisabled:boolean = false;
-    let invoiceGenerated:boolean = false;
-    let invoicePaid:boolean = false;
+    let submitDisabled: boolean = false;
+    let invoiceGenerated: boolean = false;
+    let invoicePaid: boolean = false;
     let paymentCheckInterval: any;
-    let paymentRequestUrl:string;
+    let paymentRequestUrl: string;
 
     if (browser) {
         const signer = new NDKNip07Signer();
@@ -57,8 +58,10 @@
     }
 
     const { wallet } = LNBits({
-        invoiceReadKey: dev ? "86f957d676f14a038a58151dfbbb9fe7" : "fb400ba1854542df9fac1b13b97bc6d3",
-        adminKey: "",
+        invoiceReadKey: dev
+            ? '86f957d676f14a038a58151dfbbb9fe7'
+            : 'fb400ba1854542df9fac1b13b97bc6d3',
+        adminKey: '',
         endpoint: 'https://legend.lnbits.com'
     });
 
@@ -68,58 +71,70 @@
                 if (checkedInvoice.paid) {
                     invoicePaid = true;
                     clearInterval(paymentCheckInterval);
+                    if (window.plausible) pa.addEvent('New Job Invoice Paid');
                     publishJobEvent();
                 }
-            })
+            });
         }, 1000);
     }
 
     function handleFormSubmit(event: any) {
         submitDisabled = true;
 
-        wallet.createInvoice({
-            amount: 20_000,
-            memo: `Job posting on Ostrich.work: ${title}`,
-            out: false
-        })
-        .then((newInvoice) => {
-            try {
-                paymentRequestUrl = `lightning:${newInvoice.payment_request.toUpperCase()}`;
-                const invoiceCanvas = document.getElementById("invoice");
+        wallet
+            .createInvoice({
+                amount: 20_000,
+                memo: `Job posting on Ostrich.work: ${title}`,
+                out: false
+            })
+            .then((newInvoice) => {
+                try {
+                    paymentRequestUrl = `lightning:${newInvoice.payment_request.toUpperCase()}`;
+                    const invoiceCanvas = document.getElementById('invoice');
 
-                QRCode.toCanvas(
-                    invoiceCanvas,
-                    paymentRequestUrl,
-                    {errorCorrectionLevel: 'H', width: 250},
-                    (error:any) => {
-                        if (error) {
-                            console.log(error);
-                        } else {
-                            invoiceGenerated = true;
-                            awaitAndHandlePayment(newInvoice);
-                            setTimeout(() => invoiceCanvas?.scrollIntoView({ block: 'start',  behavior: 'smooth' }), 100);
+                    QRCode.toCanvas(
+                        invoiceCanvas,
+                        paymentRequestUrl,
+                        { errorCorrectionLevel: 'H', width: 250 },
+                        (error: any) => {
+                            if (error) {
+                                console.log(error);
+                            } else {
+                                invoiceGenerated = true;
+                                awaitAndHandlePayment(newInvoice);
+                                setTimeout(
+                                    () =>
+                                        invoiceCanvas?.scrollIntoView({
+                                            block: 'start',
+                                            behavior: 'smooth'
+                                        }),
+                                    100
+                                );
+                            }
                         }
-                });
-            } catch (error:any) {
+                    );
+                    if (window.plausible) pa.addEvent('New Job Invoice Generated');
+                } catch (error: any) {
+                    console.error(error);
+                    toast.error(error);
+                    submitDisabled = false;
+                }
+            })
+            .catch((error: any) => {
                 console.error(error);
                 toast.error(error);
                 submitDisabled = false;
-            }
-        }).catch((error:any) => {
-            console.error(error);
-            toast.error(error);
-            submitDisabled = false;
-        });
+            });
     }
 
     function generatePriceTag(): NDKTag {
-        const priceTag: NDKTag = ["price"]
-        if(currency === 'sats') {
+        const priceTag: NDKTag = ['price'];
+        if (currency === 'sats') {
             // Convert sats to btc
-            priceTag.push(format((price / 100_000_000), {notation: 'fixed'}));
-            priceTag.push("btc");
+            priceTag.push(format(price / 100_000_000, { notation: 'fixed' }));
+            priceTag.push('btc');
         } else {
-            priceTag.push(format(price, {notation: 'fixed'}));
+            priceTag.push(format(price, { notation: 'fixed' }));
             priceTag.push(currency);
         }
         if (frequency !== 'once') priceTag.push(frequency);
@@ -155,18 +170,19 @@
             jobEvent.tags.push(['t', category]);
         });
 
-        toast.promise(
-            jobEvent.publish(), {
+        toast
+            .promise(jobEvent.publish(), {
                 loading: 'Publishing...',
                 success: 'Job posting published!',
                 error: 'Error publishing job post'
-            }
-        ).then(() => {
-            goto("/");
-        })
+            })
+            .then(() => {
+                if (window.plausible) pa.addEvent('New Job Event Published');
+                goto('/');
+            });
     }
 
-    $: if($currentUser) user = $ndk.getUser({npub: $currentUser?.npub});
+    $: if ($currentUser) user = $ndk.getUser({ npub: $currentUser?.npub });
 </script>
 
 <svelte:head>
@@ -219,16 +235,12 @@
                     required
                 />
             </label>
-            <PriceInput
-                bind:currency={currency}
-                bind:value={price}
-                bind:frequency={frequency}
-            />
+            <PriceInput bind:currency bind:value={price} bind:frequency />
         </div>
         <label for="categories" class="flex flex-col gap-1 w-full font-bold italic text-lg">
             Categories
             <MultiSelect
-                class="border-zinc-400 dark:border-zinc-600 bg-transparent px-2 py-1.5 font-normal border w-full rounded-none not-italic"
+                class="border-zinc-400 dark:border-zinc-600 bg-transparent px-2 py-1.5 font-normal border w-full rounded-none not-italic z-40"
                 dropdownClass="bg-white dark:bg-black hover:rounded-none border-zinc-400 dark:border-zinc-600 px-2 py-1.5 font-normal border w-full rounded-none"
                 items={categoryOptions}
                 bind:value={categories}
@@ -237,9 +249,10 @@
         <div class="flex flex-col md:flex-row gap-4 justify-between items-start w-full">
             <MarkdownTextarea
                 bind:value={description}
-                fieldName={"description"}
+                fieldName={'description'}
                 fieldLabel="Job Description"
-                placeholder="Tell us about the job and about your company or project. Markdown accepted."/>
+                placeholder="Tell us about the job and about your company or project. Markdown accepted."
+            />
         </div>
         <button
             type="submit"
@@ -254,7 +267,10 @@
         <h2>Just one more step before we publish your posting...</h2>
         <h4 class="text-xl font-normal">Please pay this Lightning invoice for 20,000 sats.</h4>
         {#if !invoicePaid}
-            <div id="awaitingPayment" class="flex flex-row gap-4 items-center text-lg font-medium justify-center mt-10 mb-4">
+            <div
+                id="awaitingPayment"
+                class="flex flex-row gap-4 items-center text-lg font-medium justify-center mt-10 mb-4"
+            >
                 Awaiting payment...
                 <WaitingSpinner />
             </div>
@@ -262,8 +278,10 @@
                 <canvas id="invoice" class="mx-auto md:w-full"></canvas>
             </a>
         {:else}
-            <div class="mt-10 mb-4 flex flex-row gap-4 items-center text-lg font-medium justify-center text-green-500">
-            Paid! Thank you.
+            <div
+                class="mt-10 mb-4 flex flex-row gap-4 items-center text-lg font-medium justify-center text-green-500"
+            >
+                Paid! Thank you.
             </div>
         {/if}
     </div>

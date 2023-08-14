@@ -10,6 +10,8 @@
     import { browser } from '$app/environment';
     import toast, { Toaster } from 'svelte-french-toast';
     import { Modal } from 'flowbite-svelte';
+    import { PlausibleAnalytics } from '@accuser/svelte-plausible-analytics';
+    import { pa } from '@accuser/svelte-plausible-analytics';
 
     let savestore = false;
     let signerModal = false;
@@ -45,6 +47,7 @@
                     );
                     document.cookie = `userNpub=${ndkUser.npub};
                 expires=${dateTomorrow()}; SameSite=Lax; Secure`;
+                    if (window.plausible) pa.addEvent('Log in');
                     toast.success('Logged in');
                 }
             });
@@ -60,9 +63,12 @@
         currentUser.set(undefined);
         window.sessionStorage.removeItem('ostrichWorkCurrentUser');
         document.cookie = 'userNpub=';
+        if (window.plausible) pa.addEvent('Log out');
         goto('/');
     }
 </script>
+
+<PlausibleAnalytics apiHost="/stats" domain="ostrich.work" />
 
 <Toaster />
 
