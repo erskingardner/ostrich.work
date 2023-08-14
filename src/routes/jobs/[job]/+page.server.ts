@@ -24,7 +24,14 @@ export const load: PageServerLoad = async ({ params }) => {
     let contractType: string | undefined;
     let tagReference: NDKTag;
 
-    const job: NDKEvent | null = await ndk.fetchEvent(jobAddr);
+    let job: NDKEvent | null = null;
+
+    try {
+        job = await ndk.fetchEvent(jobAddr);
+    } catch (error) {
+        console.error(error);
+    }
+
     if (job) {
         title = firstTagValue(job, 'title');
         description = job.content;

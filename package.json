@@ -36,7 +36,7 @@
     },
     "type": "module",
     "dependencies": {
-        "@nostr-dev-kit/ndk": "^0.8.13",
+        "@nostr-dev-kit/ndk": "^0.8.7",
         "@popperjs/core": "^2.11.8",
         "@types/dompurify": "^3.0.2",
         "@types/marked": "^5.0.1",
