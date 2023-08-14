@@ -1,5 +1,4 @@
 <script lang="ts">
-    import type { NDKUser, NDKUserProfile } from '@nostr-dev-kit/ndk';
     import type { PageData } from './$types';
     import ndk from '$lib/stores/ndk';
     import { Name, Avatar, truncatedNip05 } from '@nostr-dev-kit/ndk-svelte-components';
