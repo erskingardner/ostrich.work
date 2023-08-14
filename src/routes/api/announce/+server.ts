@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { OSTRICH_WORK_NPUB_HEX, OSTRICH_WORK_NSEC_HEX } from '$env/static/private';
+import { OSTRICH_WORK_NSEC_HEX } from '$env/static/private';
 import { NDKEvent, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 import { unixTimeNowInSeconds } from '$lib/utils/helpers';
 import ndkStore from '$lib/stores/ndk';
