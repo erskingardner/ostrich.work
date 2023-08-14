@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { NDKEvent, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
+    import { NDKEvent, NDKUser } from '@nostr-dev-kit/ndk';
     import type { NDKTag } from '@nostr-dev-kit/ndk';
     import { NDKNip07Signer } from '@nostr-dev-kit/ndk';
     import ndk from '$lib/stores/ndk';
