@@ -14,7 +14,7 @@ export const POST = async ({ request }) => {
     const ostrichNote: NDKEvent = new NDKEvent(ndk, {
         kind: 1,
         content: `🤙 New job posted by @${posterNpub}!\n\n${title}\n${tagline}\n\nCheck it out on Ostrich Work:\nhttps://ostrich.work/jobs/${nip19}\n\n#OstrichWork #job #work`,
-        pubkey: OSTRICH_WORK_NPUB_HEX,
+        pubkey: '7c163c5d6a90a0a2bad7b6d80495185c9b7766c12c2e7d9797307d97ef21b653',
         created_at: unixTimeNowInSeconds(),
         tags: [
             ['t', 'work'],
