@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { NDKEvent, NDKUser } from '@nostr-dev-kit/ndk';
+    import { NDKEvent, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
     import type { NDKTag } from '@nostr-dev-kit/ndk';
     import { NDKNip07Signer } from '@nostr-dev-kit/ndk';
     import ndk from '$lib/stores/ndk';
     import { currentUser } from '$lib/stores/currentUser';
-    import { unixTimeNowInSeconds, slugify } from '$lib/utils/helpers';
+    import { unixTimeNowInSeconds, slugify, displayableName } from '$lib/utils/helpers';
     import { goto } from '$app/navigation';
     import toast from 'svelte-french-toast';
     import { browser } from '$app/environment';
@@ -21,6 +21,7 @@
 
     // 🤮 JavaScript
     import _LNBits from 'lnbits';
+
     let LNBits: any;
 
     if (_LNBits.default) {
@@ -176,10 +177,24 @@
                 success: 'Job posting published!',
                 error: 'Error publishing job post'
             })
-            .then(() => {
+            .then(async () => {
                 if (window.plausible) pa.addEvent('New Job Event Published');
+                await publishOstrichNote(jobEvent);
                 goto('/');
             });
+    }
+
+    async function publishOstrichNote(jobEvent:NDKEvent): Promise<Response | void> {
+        const nip19 = jobEvent.encode();
+        return await fetch("/api/announce", {
+            method: 'POST',
+            body: JSON.stringify({
+                nip19: jobEvent.encode(),
+                posterNpub: user.npub,
+                title: title,
+                tagline: tagline}),
+            headers: { 'Content-Type': 'application/json'}
+        })
     }
 
     $: if ($currentUser) user = $ndk.getUser({ npub: $currentUser?.npub });
