@@ -35,7 +35,7 @@
         <span class="font-medium flex flex-row gap-1 items-center">
             {#await author.fetchProfile() then eventSet}
                 <Avatar ndk={$ndk} npub={author.npub} class="w-8 h-8 rounded-sm m-0" />
-                {author.profile?.displayName}
+                {author.profile?.displayName ?? `${author.npub.slice(0, 5)}...${author.npub.slice(-5)}`}
             {/await}
         </span>
         <span class="opacity-70">
