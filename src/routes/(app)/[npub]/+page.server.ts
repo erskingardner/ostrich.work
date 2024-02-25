@@ -1,6 +1,6 @@
-import type { PageServerLoad } from './$types';
-import ndkStore from '$lib/stores/ndk';
-import { get } from 'svelte/store';
+import type { PageServerLoad } from "./$types";
+import ndkStore from "$lib/stores/ndk";
+import { get } from "svelte/store";
 
 export const load: PageServerLoad = async ({ params }) => {
     const npub = params.npub;

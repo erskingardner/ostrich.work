@@ -1,6 +1,6 @@
 <script lang="ts">
-    import PostJobButton from '$lib/components/PostJobButton.svelte';
-    import JobList from '$lib/components/JobList.svelte';
+    import PostJobButton from "$lib/components/PostJobButton.svelte";
+    import JobList from "$lib/components/JobList.svelte";
 </script>
 
 <svelte:head>

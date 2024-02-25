@@ -5,7 +5,7 @@ declare global {
         // interface Error {}
         // interface Locals {}
         interface PageData {
-            flash?: { type: 'success' | 'error'; message: string };
+            flash?: { type: "success" | "error"; message: string };
         }
         // interface Platform {}
     }

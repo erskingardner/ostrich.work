@@ -1,26 +1,26 @@
 <script lang="ts">
-    import { NDKEvent, NDKUser } from '@nostr-dev-kit/ndk';
-    import type { NDKTag } from '@nostr-dev-kit/ndk';
-    import { NDKNip07Signer } from '@nostr-dev-kit/ndk';
-    import ndk from '$lib/stores/ndk';
-    import { currentUser } from '$lib/stores/currentUser';
-    import { unixTimeNowInSeconds, slugify, displayableName } from '$lib/utils/helpers';
-    import { goto } from '$app/navigation';
-    import toast from 'svelte-french-toast';
-    import { browser } from '$app/environment';
-    import { Select, MultiSelect } from 'flowbite-svelte';
-    import { contractTypeOptions, categoryOptions } from '$lib/data/formOptions';
-    import MarkdownTextarea from '$lib/components/Forms/MarkdownTextarea.svelte';
-    import TextInput from '$lib/components/Forms/TextInput.svelte';
-    import WaitingSpinner from '$lib/components/WaitingSpinner.svelte';
-    import PriceInput from '$lib/components/Forms/PriceInput.svelte';
-    import QRCode from 'qrcode';
-    import { dev } from '$app/environment';
-    import { format } from 'mathjs';
-    import { pa } from '@accuser/svelte-plausible-analytics';
+    import { NDKEvent, NDKUser } from "@nostr-dev-kit/ndk";
+    import type { NDKTag } from "@nostr-dev-kit/ndk";
+    import { NDKNip07Signer } from "@nostr-dev-kit/ndk";
+    import ndk from "$lib/stores/ndk";
+    import { currentUser } from "$lib/stores/currentUser";
+    import { unixTimeNowInSeconds, slugify, displayableName } from "$lib/utils/helpers";
+    import { goto } from "$app/navigation";
+    import toast from "svelte-french-toast";
+    import { browser } from "$app/environment";
+    import { Select, MultiSelect } from "flowbite-svelte";
+    import { contractTypeOptions, categoryOptions } from "$lib/data/formOptions";
+    import MarkdownTextarea from "$lib/components/Forms/MarkdownTextarea.svelte";
+    import TextInput from "$lib/components/Forms/TextInput.svelte";
+    import WaitingSpinner from "$lib/components/WaitingSpinner.svelte";
+    import PriceInput from "$lib/components/Forms/PriceInput.svelte";
+    import QRCode from "qrcode";
+    import { dev } from "$app/environment";
+    import { format } from "mathjs";
+    import { pa } from "@accuser/svelte-plausible-analytics";
 
     // 🤮 JavaScript
-    import _LNBits from 'lnbits';
+    import _LNBits from "lnbits";
 
     let LNBits: any;
 
@@ -31,8 +31,8 @@
     }
 
     if (!$currentUser && browser) {
-        toast.error('Unauthorized');
-        goto('/');
+        toast.error("Unauthorized");
+        goto("/");
     }
 
     let user: NDKUser;
@@ -44,7 +44,7 @@
     let currency: string;
     let price: number;
     let frequency: string;
-    let description: string = '';
+    let description: string = "";
     let categories: string[];
 
     let submitDisabled: boolean = false;
@@ -60,10 +60,10 @@
 
     const { wallet } = LNBits({
         invoiceReadKey: dev
-            ? '86f957d676f14a038a58151dfbbb9fe7'
-            : 'fb400ba1854542df9fac1b13b97bc6d3',
-        adminKey: '',
-        endpoint: 'https://legend.lnbits.com'
+            ? "86f957d676f14a038a58151dfbbb9fe7"
+            : "fb400ba1854542df9fac1b13b97bc6d3",
+        adminKey: "",
+        endpoint: "https://legend.lnbits.com"
     });
 
     function awaitAndHandlePayment(invoice: any) {
@@ -72,7 +72,7 @@
                 if (checkedInvoice.paid) {
                     invoicePaid = true;
                     clearInterval(paymentCheckInterval);
-                    if (window.plausible) pa.addEvent('New Job Invoice Paid');
+                    if (window.plausible) pa.addEvent("New Job Invoice Paid");
                     publishJobEvent();
                 }
             });
@@ -91,12 +91,12 @@
             .then((newInvoice) => {
                 try {
                     paymentRequestUrl = `lightning:${newInvoice.payment_request.toUpperCase()}`;
-                    const invoiceCanvas = document.getElementById('invoice');
+                    const invoiceCanvas = document.getElementById("invoice");
 
                     QRCode.toCanvas(
                         invoiceCanvas,
                         paymentRequestUrl,
-                        { errorCorrectionLevel: 'H', width: 250 },
+                        { errorCorrectionLevel: "H", width: 250 },
                         (error: any) => {
                             if (error) {
                                 console.log(error);
@@ -106,15 +106,15 @@
                                 setTimeout(
                                     () =>
                                         invoiceCanvas?.scrollIntoView({
-                                            block: 'start',
-                                            behavior: 'smooth'
+                                            block: "start",
+                                            behavior: "smooth"
                                         }),
                                     100
                                 );
                             }
                         }
                     );
-                    if (window.plausible) pa.addEvent('New Job Invoice Generated');
+                    if (window.plausible) pa.addEvent("New Job Invoice Generated");
                 } catch (error: any) {
                     console.error(error);
                     toast.error(error);
@@ -129,16 +129,16 @@
     }
 
     function generatePriceTag(): NDKTag {
-        const priceTag: NDKTag = ['price'];
-        if (currency === 'sats') {
+        const priceTag: NDKTag = ["price"];
+        if (currency === "sats") {
             // Convert sats to btc
-            priceTag.push(format(price / 100_000_000, { notation: 'fixed' }));
-            priceTag.push('btc');
+            priceTag.push(format(price / 100_000_000, { notation: "fixed" }));
+            priceTag.push("btc");
         } else {
-            priceTag.push(format(price, { notation: 'fixed' }));
+            priceTag.push(format(price, { notation: "fixed" }));
             priceTag.push(currency);
         }
-        if (frequency !== 'once') priceTag.push(frequency);
+        if (frequency !== "once") priceTag.push(frequency);
         return priceTag;
     }
 
@@ -154,47 +154,48 @@
             tags: [
                 // This d tag means that jobs with the same title from the same
                 // user will overwrite each other. You can't have more than one.
-                ['d', slugify(title)],
-                ['title', title],
-                ['summary', tagline],
-                ['published_at', `${unixTimeNowInSeconds()}`],
-                ['location', location],
+                ["d", slugify(title)],
+                ["title", title],
+                ["summary", tagline],
+                ["published_at", `${unixTimeNowInSeconds()}`],
+                ["location", location],
                 priceTag,
-                ['t', contractType],
-                ['t', 'job'],
-                ['t', 'work'],
-                ['t', 'employment']
+                ["t", contractType],
+                ["t", "job"],
+                ["t", "work"],
+                ["t", "employment"]
             ]
         });
 
         categories.forEach((category) => {
-            jobEvent.tags.push(['t', category]);
+            jobEvent.tags.push(["t", category]);
         });
 
         toast
             .promise(jobEvent.publish(), {
-                loading: 'Publishing...',
-                success: 'Job posting published!',
-                error: 'Error publishing job post'
+                loading: "Publishing...",
+                success: "Job posting published!",
+                error: "Error publishing job post"
             })
             .then(async () => {
-                if (window.plausible) pa.addEvent('New Job Event Published');
+                if (window.plausible) pa.addEvent("New Job Event Published");
                 await publishOstrichNote(jobEvent);
-                goto('/');
+                goto("/");
             });
     }
 
-    async function publishOstrichNote(jobEvent:NDKEvent): Promise<Response | void> {
+    async function publishOstrichNote(jobEvent: NDKEvent): Promise<Response | void> {
         const nip19 = jobEvent.encode();
         return await fetch("/api/announce", {
-            method: 'POST',
+            method: "POST",
             body: JSON.stringify({
                 nip19: jobEvent.encode(),
                 posterNpub: user.npub,
                 title: title,
-                tagline: tagline}),
-            headers: { 'Content-Type': 'application/json'}
-        })
+                tagline: tagline
+            }),
+            headers: { "Content-Type": "application/json" }
+        });
     }
 
     $: if ($currentUser) user = $ndk.getUser({ npub: $currentUser?.npub });
@@ -264,7 +265,7 @@
         <div class="flex flex-col md:flex-row gap-4 justify-between items-start w-full">
             <MarkdownTextarea
                 bind:value={description}
-                fieldName={'description'}
+                fieldName={"description"}
                 fieldLabel="Job Description"
                 placeholder="Tell us about the job and about your company or project. Markdown accepted."
             />

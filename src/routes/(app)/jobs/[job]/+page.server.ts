@@ -1,10 +1,10 @@
-import type { PageServerLoad } from './$types';
-import ndkStore from '$lib/stores/ndk';
-import { get } from 'svelte/store';
-import type { NDKEvent, NDKTag } from '@nostr-dev-kit/ndk';
-import { displayableName, firstTagValue } from '$lib/utils/helpers';
-import { contractTypeOptions, categoryOptions } from '$lib/data/formOptions.js';
-import { error } from '@sveltejs/kit';
+import type { PageServerLoad } from "./$types";
+import ndkStore from "$lib/stores/ndk";
+import { get } from "svelte/store";
+import type { NDKEvent, NDKTag } from "@nostr-dev-kit/ndk";
+import { displayableName, firstTagValue } from "$lib/utils/helpers";
+import { contractTypeOptions, categoryOptions } from "$lib/data/formOptions.js";
+import { error } from "@sveltejs/kit";
 
 export const load: PageServerLoad = async ({ params }) => {
     const jobAddr: string = params.job;
@@ -33,15 +33,15 @@ export const load: PageServerLoad = async ({ params }) => {
     }
 
     if (job) {
-        title = firstTagValue(job, 'title');
+        title = firstTagValue(job, "title");
         description = job.content;
-        location = firstTagValue(job, 'location');
-        summary = firstTagValue(job, 'summary');
-        priceTags = job.getMatchingTags('price');
-        publishedAt = parseInt(firstTagValue(job, 'published_at'));
+        location = firstTagValue(job, "location");
+        summary = firstTagValue(job, "summary");
+        priceTags = job.getMatchingTags("price");
+        publishedAt = parseInt(firstTagValue(job, "published_at"));
         createdAt = job.created_at as number;
         authorPubkey = job.pubkey;
-        hashtags = job.getMatchingTags('t');
+        hashtags = job.getMatchingTags("t");
         hashtags.forEach((tag) => {
             const contractTypeMatch = contractTypeOptions.find(
                 (element) => element.value === tag[1]
@@ -58,7 +58,7 @@ export const load: PageServerLoad = async ({ params }) => {
         authorName = displayableName(author);
         tagReference = job.tagReference();
     } else {
-        throw error(404, 'Job listing not found');
+        throw error(404, "Job listing not found");
     }
 
     return {

@@ -7,20 +7,19 @@
 </div>
 
 <style>
+    .spinner .rect2 {
+        animation-delay: -1.1s;
+    }
 
-.spinner .rect2 {
-    animation-delay: -1.1s;
-}
+    .spinner .rect3 {
+        animation-delay: -1s;
+    }
 
-.spinner .rect3 {
-    animation-delay: -1.0s;
-}
+    .spinner .rect4 {
+        animation-delay: -0.9s;
+    }
 
-.spinner .rect4 {
-    animation-delay: -0.9s;
-}
-
-.spinner .rect5 {
-    animation-delay: -0.8s;
-}
+    .spinner .rect5 {
+        animation-delay: -0.8s;
+    }
 </style>

@@ -1,23 +1,23 @@
 <script lang="ts">
-    import type { NDKEvent, NDKTag, NDKUser } from '@nostr-dev-kit/ndk';
-    import ndk from '$lib/stores/ndk';
-    import { firstTagValue, formattedDate } from '$lib/utils/helpers';
-    import { Avatar } from '@nostr-dev-kit/ndk-svelte-components';
-    import JobStatPills from './JobStatPills.svelte';
-    import { contractTypeOptions, categoryOptions } from '$lib/data/formOptions';
+    import type { NDKEvent, NDKTag, NDKUser } from "@nostr-dev-kit/ndk";
+    import ndk from "$lib/stores/ndk";
+    import { firstTagValue, formattedDate } from "$lib/utils/helpers";
+    import { Avatar } from "@nostr-dev-kit/ndk-svelte-components";
+    import JobStatPills from "./JobStatPills.svelte";
+    import { contractTypeOptions, categoryOptions } from "$lib/data/formOptions";
 
     export let job: NDKEvent;
 
-    let title: string = firstTagValue(job, 'title');
-    let location: string = firstTagValue(job, 'location');
-    let tagline: string = firstTagValue(job, 'summary');
+    let title: string = firstTagValue(job, "title");
+    let location: string = firstTagValue(job, "location");
+    let tagline: string = firstTagValue(job, "summary");
     let contractType: string;
     let jobCategories: string[] = [];
-    let priceTags: NDKTag[] = job.getMatchingTags('price');
-    let publishedAt: number = parseInt(firstTagValue(job, 'published_at'));
+    let priceTags: NDKTag[] = job.getMatchingTags("price");
+    let publishedAt: number = parseInt(firstTagValue(job, "published_at"));
     let author: NDKUser = $ndk.getUser({ hexpubkey: job.pubkey });
 
-    let hashtags: NDKTag[] = job.getMatchingTags('t');
+    let hashtags: NDKTag[] = job.getMatchingTags("t");
     hashtags.forEach((tag) => {
         let contractTypeMatch = contractTypeOptions.find((element) => element.value === tag[1]);
         if (contractTypeMatch) contractType = contractTypeMatch.name;

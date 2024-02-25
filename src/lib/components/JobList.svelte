@@ -1,47 +1,59 @@
 <script lang="ts">
-    import JobCard from './JobCard.svelte';
-    import ndk from '$lib/stores/ndk';
-    import type { NDKEvent } from '@nostr-dev-kit/ndk';
-    import { mostRecentPostTime, firstTagValue } from '$lib/utils/helpers';
-    import CircleXIcon from '$lib/elements/icons/CircleX.svelte';
-    import { blacklist } from '$lib/data/blacklist';
+    import JobCard from "./JobCard.svelte";
+    import ndk from "$lib/stores/ndk";
+    import type { NDKEvent } from "@nostr-dev-kit/ndk";
+    import { mostRecentPostTime, firstTagValue } from "$lib/utils/helpers";
+    import CircleXIcon from "$lib/elements/icons/CircleX.svelte";
+    import { blacklist } from "$lib/data/blacklist";
 
     let jobEvents: NDKEvent[] = [];
     let jobEventsDTags: string[] = [];
     let deletedJobEvents: NDKEvent[] = [];
 
-    const jobSub = $ndk.subscribe({kinds: [30402], "#t": ['jobs', 'work', 'employment']}, {closeOnEose: false});
+    const jobSub = $ndk.subscribe(
+        { kinds: [30402], "#t": ["jobs", "work", "employment"] },
+        { closeOnEose: false }
+    );
 
-    jobSub.on('event', (event) => {
-        if (event.id === "6757fa84f7fa2bec32e6849634ece41943692e46ea100b585a53ef6572e2356e") return // skip test event
-        if (blacklist.includes(event.pubkey)) return // skip blacklisted pubkeys
+    jobSub.on("event", (event) => {
+        if (event.id === "6757fa84f7fa2bec32e6849634ece41943692e46ea100b585a53ef6572e2356e") return; // skip test event
+        if (blacklist.includes(event.pubkey)) return; // skip blacklisted pubkeys
         if (!jobEventsDTags.includes(event.tagId())) {
             jobEvents.push(event);
-            jobEventsDTags.push(event.tagId())
-            jobEvents.sort((a,b) => parseInt(firstTagValue(b, 'published_at')) - parseInt(firstTagValue(a, 'published_at')));
+            jobEventsDTags.push(event.tagId());
+            jobEvents.sort(
+                (a, b) =>
+                    parseInt(firstTagValue(b, "published_at")) -
+                    parseInt(firstTagValue(a, "published_at"))
+            );
             jobEvents = jobEvents;
         }
     });
 
-    jobSub.on('notice', (notice) => {
+    jobSub.on("notice", (notice) => {
         console.log("NOTICE: ", notice);
     });
 
-    const deletedJobsSub = $ndk.subscribe({kinds: [5], "#t": ['jobs', 'work', 'employment']}, {closeOnEose: false})
+    const deletedJobsSub = $ndk.subscribe(
+        { kinds: [5], "#t": ["jobs", "work", "employment"] },
+        { closeOnEose: false }
+    );
 
     deletedJobsSub.on("event", (deletedEvent) => {
         if (!deletedJobEvents.includes(deletedEvent)) {
             deletedJobEvents.push(deletedEvent);
-            const newJobEvents = jobEvents.filter(event => event.tagId() !== deletedEvent.tagId() )
+            const newJobEvents = jobEvents.filter(
+                (event) => event.tagId() !== deletedEvent.tagId()
+            );
             jobEvents = newJobEvents;
         }
     });
 
-    deletedJobsSub.on('notice', (notice) => {
+    deletedJobsSub.on("notice", (notice) => {
         console.log("NOTICE: ", notice);
     });
 
-    let latestPostAt:string | undefined;
+    let latestPostAt: string | undefined;
     $: if (jobEvents.length > 0) latestPostAt = mostRecentPostTime(jobEvents);
 </script>
 
@@ -60,10 +72,11 @@
             {/key}
         {/each}
     {:else}
-        <div class="flex flex-row items-center gap-2 text-lg font-medium bg-zinc-50 dark:bg-zinc-950 border border-zinc-700/50 dark:border-zinc-50/50 p-4 shadow-square-grey-sm duration-1000 hover:duration-500"
+        <div
+            class="flex flex-row items-center gap-2 text-lg font-medium bg-zinc-50 dark:bg-zinc-950 border border-zinc-700/50 dark:border-zinc-50/50 p-4 shadow-square-grey-sm duration-1000 hover:duration-500"
         >
-        <CircleXIcon />
-        No active jobs...come back soon.
+            <CircleXIcon />
+            No active jobs...come back soon.
         </div>
     {/if}
 </div>

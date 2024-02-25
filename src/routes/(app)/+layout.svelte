@@ -1,28 +1,28 @@
 <script lang="ts">
-    import '../../app.css';
-    import Header from '../../lib/components/Header.svelte';
-    import Footer from '$lib/components/Footer.svelte';
-    import { currentUser } from '$lib/stores/currentUser';
-    import ndk from '$lib/stores/ndk';
-    import { NDKNip07Signer } from '@nostr-dev-kit/ndk';
-    import { dateTomorrow } from '$lib/utils/helpers';
-    import { goto } from '$app/navigation';
-    import { browser } from '$app/environment';
-    import toast, { Toaster } from 'svelte-french-toast';
-    import { Modal } from 'flowbite-svelte';
-    import { PlausibleAnalytics } from '@accuser/svelte-plausible-analytics';
-    import { pa } from '@accuser/svelte-plausible-analytics';
+    import "../../app.css";
+    import Header from "../../lib/components/Header.svelte";
+    import Footer from "$lib/components/Footer.svelte";
+    import { currentUser } from "$lib/stores/currentUser";
+    import ndk from "$lib/stores/ndk";
+    import { NDKNip07Signer } from "@nostr-dev-kit/ndk";
+    import { dateTomorrow } from "$lib/utils/helpers";
+    import { goto } from "$app/navigation";
+    import { browser } from "$app/environment";
+    import toast, { Toaster } from "svelte-french-toast";
+    import { Modal } from "flowbite-svelte";
+    import { PlausibleAnalytics } from "@accuser/svelte-plausible-analytics";
+    import { pa } from "@accuser/svelte-plausible-analytics";
 
     let savestore = false;
     let signerModal = false;
 
     $: if (savestore && $currentUser) {
         // Get the user
-        window.sessionStorage.setItem('ostrichWorkCurrentUser', JSON.stringify($currentUser));
+        window.sessionStorage.setItem("ostrichWorkCurrentUser", JSON.stringify($currentUser));
     }
 
     if (browser) {
-        const storedUser = window.sessionStorage.getItem('ostrichWorkCurrentUser');
+        const storedUser = window.sessionStorage.getItem("ostrichWorkCurrentUser");
         if (storedUser) {
             currentUser.set(JSON.parse(storedUser));
             document.cookie = `userNpub=${
@@ -42,13 +42,13 @@
                     ndkUser.ndk = $ndk;
                     currentUser.set(ndkUser);
                     window.sessionStorage.setItem(
-                        'ostrichWorkCurrentUser',
+                        "ostrichWorkCurrentUser",
                         JSON.stringify(ndkUser)
                     );
                     document.cookie = `userNpub=${ndkUser.npub};
                 expires=${dateTomorrow()}; SameSite=Lax; Secure`;
-                    if (window.plausible) pa.addEvent('Log in');
-                    toast.success('Logged in');
+                    if (window.plausible) pa.addEvent("Log in");
+                    toast.success("Logged in");
                 }
             });
             if (domEvent?.detail?.redirect) goto(domEvent.detail.redirect);
@@ -61,10 +61,10 @@
     function logout(e: Event) {
         e.preventDefault();
         currentUser.set(undefined);
-        window.sessionStorage.removeItem('ostrichWorkCurrentUser');
-        document.cookie = 'userNpub=';
-        if (window.plausible) pa.addEvent('Log out');
-        goto('/');
+        window.sessionStorage.removeItem("ostrichWorkCurrentUser");
+        document.cookie = "userNpub=";
+        if (window.plausible) pa.addEvent("Log out");
+        goto("/");
     }
 </script>
 

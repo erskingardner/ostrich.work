@@ -1,13 +1,13 @@
 <script lang="ts">
-    import { currentUser } from '$lib/stores/currentUser';
-    import ndk from '$lib/stores/ndk';
-    import { Popover, Button } from 'flowbite-svelte';
-    import { Avatar } from '@nostr-dev-kit/ndk-svelte-components';
-    import { RelayList } from '@nostr-dev-kit/ndk-svelte-components';
-    import CirclePlusIcon from '../elements/icons/CirclePlus.svelte';
-    import PersonIcon from '../elements/icons/Person.svelte';
-    import LogoutIcon from '../elements/icons/Logout.svelte';
-    import { createEventDispatcher } from 'svelte';
+    import { currentUser } from "$lib/stores/currentUser";
+    import ndk from "$lib/stores/ndk";
+    import { Popover, Button } from "flowbite-svelte";
+    import { Avatar } from "@nostr-dev-kit/ndk-svelte-components";
+    import { RelayList } from "@nostr-dev-kit/ndk-svelte-components";
+    import CirclePlusIcon from "../elements/icons/CirclePlus.svelte";
+    import PersonIcon from "../elements/icons/Person.svelte";
+    import LogoutIcon from "../elements/icons/Logout.svelte";
+    import { createEventDispatcher } from "svelte";
 
     const dispatch = createEventDispatcher();
 </script>
@@ -37,7 +37,7 @@
             <Button
                 type="button"
                 color="none"
-                href={'/jobs/new'}
+                href={"/jobs/new"}
                 class="popoverPanelLink not-styled justify-start rounded-none"
             >
                 <CirclePlusIcon />
@@ -55,7 +55,7 @@
             <Button
                 type="button"
                 color="none"
-                on:click={() => dispatch('logout')}
+                on:click={() => dispatch("logout")}
                 class="popoverPanelLink not-styled justify-start rounded-none"
             >
                 <LogoutIcon />
@@ -69,7 +69,7 @@
 {:else}
     <button
         id="loginButton"
-        on:click={() => dispatch('login')}
+        on:click={() => dispatch("login")}
         class="border py-2 px-4 font-semibold hover:bg-purple-500/20 dark:hover:bg-purple-400/20"
         >Log in</button
     >

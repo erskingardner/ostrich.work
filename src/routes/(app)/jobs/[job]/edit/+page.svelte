@@ -1,42 +1,39 @@
 <script lang="ts">
-    import { NDKEvent, NDKUser, NDKNip07Signer } from '@nostr-dev-kit/ndk';
-    import type { NDKTag } from '@nostr-dev-kit/ndk';
-    import ndk from '$lib/stores/ndk';
-    import { currentUser } from '$lib/stores/currentUser';
-    import { unixTimeNowInSeconds, slugify } from '$lib/utils/helpers';
-    import MarkdownTextarea from '$lib/components/Forms/MarkdownTextarea.svelte';
-    import { goto } from '$app/navigation';
-    import toast from 'svelte-french-toast';
-    import { browser } from '$app/environment';
-    import TextInput from '$lib/components/Forms/TextInput.svelte';
-    import { Select, MultiSelect } from 'flowbite-svelte';
-    import { contractTypeOptions, categoryOptions } from '$lib/data/formOptions';
-    import { firstTagValue } from '$lib/utils/helpers';
-
-
+    import { NDKEvent, NDKUser, NDKNip07Signer } from "@nostr-dev-kit/ndk";
+    import type { NDKTag } from "@nostr-dev-kit/ndk";
+    import ndk from "$lib/stores/ndk";
+    import { currentUser } from "$lib/stores/currentUser";
+    import { unixTimeNowInSeconds, slugify } from "$lib/utils/helpers";
+    import MarkdownTextarea from "$lib/components/Forms/MarkdownTextarea.svelte";
+    import { goto } from "$app/navigation";
+    import toast from "svelte-french-toast";
+    import { browser } from "$app/environment";
+    import TextInput from "$lib/components/Forms/TextInput.svelte";
+    import { Select, MultiSelect } from "flowbite-svelte";
+    import { contractTypeOptions, categoryOptions } from "$lib/data/formOptions";
+    import { firstTagValue } from "$lib/utils/helpers";
 
     export let data;
 
-    if(browser) {
-        if(!$currentUser) redirectUnauthorized();
+    if (browser) {
+        if (!$currentUser) redirectUnauthorized();
 
-        let userPubkey = $ndk.getUser({npub: $currentUser?.npub}).hexpubkey();
-        if(data.eventPubkey !== userPubkey) redirectUnauthorized();
+        let userPubkey = $ndk.getUser({ npub: $currentUser?.npub }).hexpubkey();
+        if (data.eventPubkey !== userPubkey) redirectUnauthorized();
     }
 
-    console.log(data)
+    console.log(data);
     let job: NDKEvent;
-    let title:string;
-    let description:string;
-    let location:string;
-    let summary:string;
-    let contractType:string;
-    let categories:string[] = [];
-    let price:string;
-    let publishedAt:string;
+    let title: string;
+    let description: string;
+    let location: string;
+    let summary: string;
+    let contractType: string;
+    let categories: string[] = [];
+    let price: string;
+    let publishedAt: string;
     let author: NDKUser;
-    let hashtags: NDKTag[]
-
+    let hashtags: NDKTag[];
 
     $ndk.fetchEvent(data.jobAddr).then((event) => {
         if (event) {
@@ -48,19 +45,21 @@
             price = firstTagValue(job, "price");
             // This is in seconds and needs to stay that way
             publishedAt = firstTagValue(job, "published_at");
-            author = $ndk.getUser({hexpubkey: job.pubkey});
+            author = $ndk.getUser({ hexpubkey: job.pubkey });
             hashtags = job.getMatchingTags("t");
             hashtags.forEach((tag) => {
-                let contractTypeMatch = contractTypeOptions.find(element => element.value === tag[1]);
+                let contractTypeMatch = contractTypeOptions.find(
+                    (element) => element.value === tag[1]
+                );
                 if (contractTypeMatch) contractType = contractTypeMatch.value;
-                let categoryMatch = categoryOptions.find(element => element.value === tag[1]);
+                let categoryMatch = categoryOptions.find((element) => element.value === tag[1]);
                 if (categoryMatch) categories.push(categoryMatch.value);
             });
         } else {
-            console.error("No event found")
+            console.error("No event found");
         }
     });
-    let submitDisabled:boolean = false;
+    let submitDisabled: boolean = false;
 
     if (browser) {
         const signer = new NDKNip07Signer();
@@ -83,34 +82,33 @@
             tags: [
                 // This d tag means that jobs with the same title from the same
                 // user will overwrite each other. You can't have more than one.
-                ['d', slugify(title)],
-                ['title', title],
-                ['summary', summary],
-                ['published_at', publishedAt],
-                ['location', location],
-                ['price', price],
-                ['t', contractType],
-                ['t', 'job'],
-                ['t', 'work'],
-                ['t', 'employment']
+                ["d", slugify(title)],
+                ["title", title],
+                ["summary", summary],
+                ["published_at", publishedAt],
+                ["location", location],
+                ["price", price],
+                ["t", contractType],
+                ["t", "job"],
+                ["t", "work"],
+                ["t", "employment"]
             ]
         });
 
         categories.forEach((category) => {
-            jobEvent.tags.push(['t', category]);
+            jobEvent.tags.push(["t", category]);
         });
 
-        toast.promise(
-            jobEvent.publish(), {
-                loading: 'Publishing...',
-                success: 'Job posting published!',
-                error: 'Error publishing job post'
-            }
-        ).then(() => {
-            goto("/");
-        })
+        toast
+            .promise(jobEvent.publish(), {
+                loading: "Publishing...",
+                success: "Job posting published!",
+                error: "Error publishing job post"
+            })
+            .then(() => {
+                goto("/");
+            });
     }
-
 </script>
 
 <svelte:head>
@@ -185,7 +183,8 @@
                 bind:value={description}
                 fieldName={"description"}
                 fieldLabel="Job Description"
-                placeholder="Tell us about the job and about your company or project. Markdown accepted."/>
+                placeholder="Tell us about the job and about your company or project. Markdown accepted."
+            />
         </div>
         <button
             type="submit"
@@ -195,5 +194,4 @@
             <span class="skew-x-12">Update job posting</span>
         </button>
     </form>
-
 </div>

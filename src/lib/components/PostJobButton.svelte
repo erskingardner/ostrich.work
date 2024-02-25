@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { goto } from '$app/navigation';
-    import { currentUser } from '$lib/stores/currentUser';
+    import { goto } from "$app/navigation";
+    import { currentUser } from "$lib/stores/currentUser";
 
     function postOrLogIn() {
         if ($currentUser) {
-            goto('/jobs/new');
+            goto("/jobs/new");
         } else {
-            const loginButton = document.getElementById('loginButton');
+            const loginButton = document.getElementById("loginButton");
             if (loginButton) loginButton.click();
         }
     }
