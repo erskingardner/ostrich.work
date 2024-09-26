@@ -1,5 +1,4 @@
-import { json } from "@sveltejs/kit";
-import { OSTRICH_WORK_NSEC_HEX } from "$env/static/private";
+import { PRIVATE_OSTRICH_WORK_NSEC_HEX } from "$env/static/private";
 import { NDKEvent, NDKPrivateKeySigner } from "@nostr-dev-kit/ndk";
 import { unixTimeNowInSeconds } from "$lib/utils/helpers";
 import ndkStore from "$lib/stores/ndk";
@@ -9,7 +8,9 @@ export const POST = async ({ request }) => {
     const { nip19, posterNpub, title, tagline } = await request.json();
 
     if (!nip19 || !posterNpub || !title || !tagline)
-        return json({ error: "Missing required parameter" }, { status: 422 });
+        return new Response(JSON.stringify({ error: "Missing required parameter" }), {
+            status: 422
+        });
 
     const ndk = get(ndkStore);
     const ostrichNote: NDKEvent = new NDKEvent(ndk, {
@@ -24,15 +25,15 @@ export const POST = async ({ request }) => {
             ["r", `https://ostrich.work/jobs/${nip19}`]
         ]
     });
-    const pkSigner = new NDKPrivateKeySigner(OSTRICH_WORK_NSEC_HEX);
+    const pkSigner = new NDKPrivateKeySigner(PRIVATE_OSTRICH_WORK_NSEC_HEX);
     await ostrichNote.sign(pkSigner);
 
-    ostrichNote
-        .publish()
-        .then(() => {
-            return json({ ostrichNote }, { status: 200 });
-        })
-        .catch((error) => {
-            return json({ error: `Unable to publish note: ${error}` }, { status: 422 });
+    try {
+        await ostrichNote.publish();
+        return new Response(JSON.stringify({ ostrichNote }), { status: 200 });
+    } catch (error) {
+        return new Response(JSON.stringify({ error: `Unable to publish note: ${error}` }), {
+            status: 422
         });
+    }
 };

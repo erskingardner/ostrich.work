@@ -12,23 +12,11 @@
     import { contractTypeOptions, categoryOptions } from "$lib/data/formOptions";
     import MarkdownTextarea from "$lib/components/Forms/MarkdownTextarea.svelte";
     import TextInput from "$lib/components/Forms/TextInput.svelte";
-    import WaitingSpinner from "$lib/components/WaitingSpinner.svelte";
+    // import WaitingSpinner from "$lib/components/WaitingSpinner.svelte";
     import PriceInput from "$lib/components/Forms/PriceInput.svelte";
-    import QRCode from "qrcode";
-    import { dev } from "$app/environment";
+    // import QRCode from "qrcode";
+    // import { dev } from "$app/environment";
     import { format } from "mathjs";
-    import { pa } from "@accuser/svelte-plausible-analytics";
-
-    // 🤮 JavaScript
-    import _LNBits from "lnbits";
-
-    let LNBits: any;
-
-    if (_LNBits.default) {
-        LNBits = _LNBits.default;
-    } else {
-        LNBits = _LNBits;
-    }
 
     if (!$currentUser && browser) {
         toast.error("Unauthorized");
@@ -48,84 +36,75 @@
     let categories: string[];
 
     let submitDisabled: boolean = false;
-    let invoiceGenerated: boolean = false;
-    let invoicePaid: boolean = false;
-    let paymentCheckInterval: any;
-    let paymentRequestUrl: string;
+    // let invoiceGenerated: boolean = false;
+    // let invoicePaid: boolean = false;
+    // let paymentCheckInterval: any;
+    // let paymentRequestUrl: string;
 
     if (browser) {
         const signer = new NDKNip07Signer();
         $ndk.signer = signer;
     }
 
-    const { wallet } = LNBits({
-        invoiceReadKey: dev
-            ? "86f957d676f14a038a58151dfbbb9fe7"
-            : "fb400ba1854542df9fac1b13b97bc6d3",
-        adminKey: "",
-        endpoint: "https://legend.lnbits.com"
-    });
+    // function awaitAndHandlePayment(invoice: any) {
+    //     paymentCheckInterval = setInterval(() => {
+    //         wallet.checkInvoice({ payment_hash: invoice.payment_hash }).then((checkedInvoice) => {
+    //             if (checkedInvoice.paid) {
+    //                 invoicePaid = true;
+    //                 clearInterval(paymentCheckInterval);
+    //                 publishJobEvent();
+    //             }
+    //         });
+    //     }, 1000);
+    // }
 
-    function awaitAndHandlePayment(invoice: any) {
-        paymentCheckInterval = setInterval(() => {
-            wallet.checkInvoice({ payment_hash: invoice.payment_hash }).then((checkedInvoice) => {
-                if (checkedInvoice.paid) {
-                    invoicePaid = true;
-                    clearInterval(paymentCheckInterval);
-                    if (window.plausible) pa.addEvent("New Job Invoice Paid");
-                    publishJobEvent();
-                }
-            });
-        }, 1000);
-    }
-
-    function handleFormSubmit(event: any) {
+    function handleFormSubmit(_event: any) {
         submitDisabled = true;
+        publishJobEvent();
 
-        wallet
-            .createInvoice({
-                amount: 20_000,
-                memo: `Job posting on Ostrich.work: ${title}`,
-                out: false
-            })
-            .then((newInvoice) => {
-                try {
-                    paymentRequestUrl = `lightning:${newInvoice.payment_request.toUpperCase()}`;
-                    const invoiceCanvas = document.getElementById("invoice");
+        // wallet
+        //     .createInvoice({
+        //         amount: 20_000,
+        //         memo: `Job posting on Ostrich.work: ${title}`,
+        //         out: false
+        //     })
+        //     .then((newInvoice) => {
+        //         try {
+        //             paymentRequestUrl = `lightning:${newInvoice.payment_request.toUpperCase()}`;
+        //             const invoiceCanvas = document.getElementById("invoice");
 
-                    QRCode.toCanvas(
-                        invoiceCanvas,
-                        paymentRequestUrl,
-                        { errorCorrectionLevel: "H", width: 250 },
-                        (error: any) => {
-                            if (error) {
-                                console.log(error);
-                            } else {
-                                invoiceGenerated = true;
-                                awaitAndHandlePayment(newInvoice);
-                                setTimeout(
-                                    () =>
-                                        invoiceCanvas?.scrollIntoView({
-                                            block: "start",
-                                            behavior: "smooth"
-                                        }),
-                                    100
-                                );
-                            }
-                        }
-                    );
-                    if (window.plausible) pa.addEvent("New Job Invoice Generated");
-                } catch (error: any) {
-                    console.error(error);
-                    toast.error(error);
-                    submitDisabled = false;
-                }
-            })
-            .catch((error: any) => {
-                console.error(error);
-                toast.error(error);
-                submitDisabled = false;
-            });
+        //             QRCode.toCanvas(
+        //                 invoiceCanvas,
+        //                 paymentRequestUrl,
+        //                 { errorCorrectionLevel: "H", width: 250 },
+        //                 (error: any) => {
+        //                     if (error) {
+        //                         console.log(error);
+        //                     } else {
+        //                         invoiceGenerated = true;
+        //                         awaitAndHandlePayment(newInvoice);
+        //                         setTimeout(
+        //                             () =>
+        //                                 invoiceCanvas?.scrollIntoView({
+        //                                     block: "start",
+        //                                     behavior: "smooth"
+        //                                 }),
+        //                             100
+        //                         );
+        //                     }
+        //                 }
+        //             );
+        //         } catch (error: any) {
+        //             console.error(error);
+        //             toast.error(error);
+        //             submitDisabled = false;
+        //         }
+        //     })
+        //     .catch((error: any) => {
+        //         console.error(error);
+        //         toast.error(error);
+        //         submitDisabled = false;
+        //     });
     }
 
     function generatePriceTag(): NDKTag {
@@ -148,7 +127,7 @@
 
         const jobEvent: NDKEvent = new NDKEvent($ndk, {
             kind: 30402, // https://rb.gy/43la8
-            pubkey: user.hexpubkey(),
+            pubkey: user.pubkey,
             content: description,
             created_at: unixTimeNowInSeconds(),
             tags: [
@@ -178,14 +157,12 @@
                 error: "Error publishing job post"
             })
             .then(async () => {
-                if (window.plausible) pa.addEvent("New Job Event Published");
                 await publishOstrichNote(jobEvent);
                 goto("/");
             });
     }
 
     async function publishOstrichNote(jobEvent: NDKEvent): Promise<Response | void> {
-        const nip19 = jobEvent.encode();
         return await fetch("/api/announce", {
             method: "POST",
             body: JSON.stringify({
@@ -279,7 +256,7 @@
         </button>
     </form>
 
-    <div id="invoiceContainer" class="mx-auto w-2/3 text-center {invoiceGenerated ? '' : 'hidden'}">
+    <!-- <div id="invoiceContainer" class="mx-auto w-2/3 text-center {invoiceGenerated ? '' : 'hidden'}">
         <h2>Just one more step before we publish your posting...</h2>
         <h4 class="text-xl font-normal">Please pay this Lightning invoice for 20,000 sats.</h4>
         {#if !invoicePaid}
@@ -300,5 +277,5 @@
                 Paid! Thank you.
             </div>
         {/if}
-    </div>
+    </div> -->
 </div>

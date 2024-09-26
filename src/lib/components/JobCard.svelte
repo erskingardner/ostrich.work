@@ -2,7 +2,8 @@
     import type { NDKEvent, NDKTag, NDKUser } from "@nostr-dev-kit/ndk";
     import ndk from "$lib/stores/ndk";
     import { firstTagValue, formattedDate } from "$lib/utils/helpers";
-    import { Avatar } from "@nostr-dev-kit/ndk-svelte-components";
+    import Avatar from "./Avatar.svelte";
+    import Name from "./Name.svelte";
     import JobStatPills from "./JobStatPills.svelte";
     import { contractTypeOptions, categoryOptions } from "$lib/data/formOptions";
 
@@ -15,7 +16,7 @@
     let jobCategories: string[] = [];
     let priceTags: NDKTag[] = job.getMatchingTags("price");
     let publishedAt: number = parseInt(firstTagValue(job, "published_at"));
-    let author: NDKUser = $ndk.getUser({ hexpubkey: job.pubkey });
+    let author: NDKUser = $ndk.getUser({ pubkey: job.pubkey });
 
     let hashtags: NDKTag[] = job.getMatchingTags("t");
     hashtags.forEach((tag) => {
@@ -33,10 +34,8 @@
 >
     <div class="flex flex-row justify-between items-center mb-4">
         <span class="font-medium flex flex-row gap-1 items-center">
-            {#await author.fetchProfile() then eventSet}
-                <Avatar ndk={$ndk} npub={author.npub} class="w-8 h-8 rounded-sm m-0" />
-                {author.profile?.displayName}
-            {/await}
+            <Avatar pubkey={author.pubkey} className="w-8 h-8 rounded-sm m-0" />
+            <Name user={author} />
         </span>
         <span class="opacity-70">
             {formattedDate(publishedAt)}

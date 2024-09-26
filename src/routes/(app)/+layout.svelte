@@ -2,73 +2,26 @@
     import "../../app.css";
     import Header from "../../lib/components/Header.svelte";
     import Footer from "$lib/components/Footer.svelte";
-    import { currentUser } from "$lib/stores/currentUser";
+    import { currentUser, currentUserFollows, fetchFollowers } from "$lib/stores/currentUser";
     import ndk from "$lib/stores/ndk";
-    import { NDKNip07Signer } from "@nostr-dev-kit/ndk";
-    import { dateTomorrow } from "$lib/utils/helpers";
-    import { goto } from "$app/navigation";
-    import { browser } from "$app/environment";
-    import toast, { Toaster } from "svelte-french-toast";
+    import { signin, signout } from "$lib/utils/auth";
+    import { Toaster } from "svelte-french-toast";
     import { Modal } from "flowbite-svelte";
-    import { PlausibleAnalytics } from "@accuser/svelte-plausible-analytics";
-    import { pa } from "@accuser/svelte-plausible-analytics";
+    import type { LayoutServerData } from "./$types";
 
-    let savestore = false;
+    export let data: LayoutServerData;
     let signerModal = false;
-
-    $: if (savestore && $currentUser) {
-        // Get the user
-        window.sessionStorage.setItem("ostrichWorkCurrentUser", JSON.stringify($currentUser));
-    }
-
-    if (browser) {
-        const storedUser = window.sessionStorage.getItem("ostrichWorkCurrentUser");
-        if (storedUser) {
-            currentUser.set(JSON.parse(storedUser));
-            document.cookie = `userNpub=${
-                $currentUser?.npub
-            }; expires=${dateTomorrow()}; SameSite=Lax; Secure`;
-        }
-        savestore = true;
-    }
-
-    async function login(domEvent: any) {
-        try {
-            const signer = new NDKNip07Signer();
-            $ndk.signer = signer;
-            ndk.set($ndk);
-            signer.user().then(async (ndkUser) => {
-                if (!!ndkUser.npub) {
-                    ndkUser.ndk = $ndk;
-                    currentUser.set(ndkUser);
-                    window.sessionStorage.setItem(
-                        "ostrichWorkCurrentUser",
-                        JSON.stringify(ndkUser)
-                    );
-                    document.cookie = `userNpub=${ndkUser.npub};
-                expires=${dateTomorrow()}; SameSite=Lax; Secure`;
-                    if (window.plausible) pa.addEvent("Log in");
-                    toast.success("Logged in");
-                }
-            });
-            if (domEvent?.detail?.redirect) goto(domEvent.detail.redirect);
-        } catch (error: any) {
-            console.error(error.message);
-            signerModal = true;
+    if (data.cookie) {
+        $currentUser = $ndk.getUser({ npub: data.cookie });
+        if ($currentUser && $currentUserFollows.length === 0) {
+            // fetchFollowers($currentUser).catch(console.error);
         }
     }
 
-    function logout(e: Event) {
-        e.preventDefault();
-        currentUser.set(undefined);
-        window.sessionStorage.removeItem("ostrichWorkCurrentUser");
-        document.cookie = "userNpub=";
-        if (window.plausible) pa.addEvent("Log out");
-        goto("/");
+    async function login() {
+        await signin($ndk);
     }
 </script>
-
-<PlausibleAnalytics apiHost="/stats" domain="ostrich.work" />
 
 <Toaster />
 
@@ -113,7 +66,7 @@
 </Modal>
 
 <div class="mx-auto md:max-w-5xl lg:max-w-7xl px-4">
-    <Header on:login={login} on:logout={logout} />
+    <Header on:login={login} on:logout={signout} />
     <div class="md:max-w-5xl lg:max-w-7xl mx-auto prose dark:prose-invert">
         <slot />
     </div>

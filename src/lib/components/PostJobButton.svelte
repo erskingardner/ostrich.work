@@ -53,7 +53,7 @@
         class="text-center md:text-start text-lg pt-1.5 font-medium bg-clip-text text-transparent bg-gradient-to-r
     from-orange-400 to-orange-600"
     >
-        ⭐ Just 20,000 sats per job post
+        ⭐ Post a job for free
     </p>
 </div>
 

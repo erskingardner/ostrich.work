@@ -2,7 +2,6 @@
     import { displayableName, formattedDate, unixTimeNowInSeconds } from "$lib/utils/helpers.js";
     import ndk from "$lib/stores/ndk.js";
     import { NDKEvent, type NDKUser, type NDKTag, NDKNip07Signer } from "@nostr-dev-kit/ndk";
-    import { Avatar, truncatedNip05 } from "@nostr-dev-kit/ndk-svelte-components";
     import { cleanMarkdown } from "$lib/utils/markdown.js";
     import JobStatPills from "$lib/components/JobStatPills.svelte";
     import { currentUser } from "$lib/stores/currentUser.js";
@@ -12,6 +11,7 @@
     import ArrowCircleIcon from "$lib/elements/icons/ArrowCircle.svelte";
     import { Modal, Button, Tooltip } from "flowbite-svelte";
     import toast from "svelte-french-toast";
+    import Avatar from "$lib/components/Avatar.svelte";
 
     export let data;
 
@@ -30,7 +30,7 @@
                 kind: 4,
                 content: `New message via Ostrich.Work about your job posting "${data.title}"\n\n ${messageContent}`,
                 created_at: unixTimeNowInSeconds(),
-                pubkey: user?.hexpubkey() as string,
+                pubkey: user?.pubkey as string,
                 tags: [["p", data.authorPubkey as string]]
             });
 
@@ -186,9 +186,8 @@
                         <div class="flex flex-row gap-4 items-start font-medium w-full">
                             <a href={`/${author.npub}`} class="border-none flex w-28 h-28 shrink-0"
                                 ><Avatar
-                                    ndk={$ndk}
-                                    npub={author.npub}
-                                    class="w-28 h-28 m-0 shadow-square-grey-sm hover:shadow-square-orange hover:duration-500 duration-1000"
+                                    pubkey={author.pubkey}
+                                    className="w-28 h-28 m-0 shadow-square-grey-sm hover:shadow-square-orange hover:duration-500 duration-1000"
                                 /></a
                             >
                             <div class="flex flex-col gap-1 items-start break-words shrink">
@@ -200,7 +199,7 @@
                                 </div>
                                 <div class="flex flex-row gap-1 items-center">
                                     <CheckBadgeIcon class="w-5 h-5" />
-                                    {truncatedNip05(author.profile)}
+                                    {author.profile?.nip05}
                                 </div>
                             </div>
                         </div>

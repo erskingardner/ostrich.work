@@ -1,7 +1,6 @@
 import type { NDKEvent, NDKUser } from "@nostr-dev-kit/ndk";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { typeOf } from "mathjs";
 
 dayjs.extend(relativeTime);
 
@@ -14,7 +13,7 @@ export function dateTomorrow() {
 }
 
 export function formattedDate(unixTimestampInSeconds: number): string {
-    const options = {
+    const options: Intl.DateTimeFormatOptions = {
         year: "numeric",
         month: "long",
         day: "numeric"

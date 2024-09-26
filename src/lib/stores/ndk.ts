@@ -1,21 +1,51 @@
-import { writable } from "svelte/store";
 import NDK from "@nostr-dev-kit/ndk";
+import NDKSvelte from "@nostr-dev-kit/ndk-svelte";
+import type { NDKCacheAdapter } from "@nostr-dev-kit/ndk";
+import NDKCacheAdapterDexie from "@nostr-dev-kit/ndk-cache-dexie";
+import { writable } from "svelte/store";
+import { browser } from "$app/environment";
 
-const ndk = new NDK({
+let cacheAdapter: NDKCacheAdapter | undefined;
+
+if (browser) {
+    cacheAdapter = new NDKCacheAdapterDexie({ dbName: "ostrich" });
+}
+
+const ndkStore = new NDKSvelte({
     explicitRelayUrls: [
-        // 'ws://localhost:8080'
         "wss://purplepag.es",
+        "wss://relay.primal.net",
+        "wss://relay.damus.io",
         "wss://relay.nostr.band",
         "wss://nos.lol",
-        "wss://relay.snort.social",
-        "wss://relay.damus.io"
+        "wss://relay.snort.social"
     ],
-    debug: false
+    outboxRelayUrls: ["wss://purplepag.es", "wss://relay.primal.net"],
+    autoConnectUserRelays: true,
+    autoFetchUserMutelist: true,
+    enableOutboxModel: false,
+    cacheAdapter: cacheAdapter,
+    clientName: "Ostrich Work"
 });
 
-ndk.connect().then(() => console.log("NDK Connected"));
+ndkStore.connect().then(() => console.log("NDK connected"));
 
-// Create a singleton instance that is the default export
-const ndkStore = writable(ndk);
+const ndk = writable(ndkStore);
 
-export default ndkStore;
+export const bunkerNDKStore = new NDK({
+    explicitRelayUrls: [
+        "wss://relay.nsecbunker.com",
+        "wss://purplepag.es",
+        "wss://relay.primal.net",
+        "wss://relay.damus.io",
+        "wss://relay.nostr.band",
+        "wss://nos.lol",
+        "wss://relay.snort.social"
+    ],
+    enableOutboxModel: false
+});
+
+bunkerNDKStore.connect().then(() => console.log("Bunker NDK Connected"));
+export const bunkerNdk = writable(bunkerNDKStore);
+
+export default ndk;
