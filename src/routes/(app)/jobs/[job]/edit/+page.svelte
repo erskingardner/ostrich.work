@@ -18,7 +18,7 @@
     if (browser) {
         if (!$currentUser) redirectUnauthorized();
 
-        let userPubkey = $ndk.getUser({ npub: $currentUser?.npub }).hexpubkey();
+        let userPubkey = $ndk.getUser({ npub: $currentUser?.npub }).pubkey;
         if (data.eventPubkey !== userPubkey) redirectUnauthorized();
     }
 
@@ -76,7 +76,7 @@
 
         const jobEvent: NDKEvent = new NDKEvent($ndk, {
             kind: 30402, // https://rb.gy/43la8
-            pubkey: author.hexpubkey(),
+            pubkey: author.pubkey,
             content: description,
             created_at: unixTimeNowInSeconds(),
             tags: [

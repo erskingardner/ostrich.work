@@ -6,26 +6,29 @@
     import TagIcon from "$lib/elements/icons/Tag.svelte";
     import { format } from "mathjs";
 
-    export let location: string | undefined;
-    export let priceTags: NDKTag[];
-    export let contractType: string | undefined;
-    export let jobCategories: string[];
-
-    let frequency: string | undefined;
-    let currency: string | undefined;
-    let price: string | undefined;
-
-    if (priceTags?.length > 0) {
-        price = priceTags[0][1];
-
-        // Fix broken scientific notation
-        if (price.includes("e-")) {
-            price = format(parseFloat(price), { notation: "fixed" });
-        }
-
-        currency = priceTags[0][2];
-        if (priceTags[0].length === 4) frequency = priceTags[0][3];
+    interface Props {
+        location: string | undefined;
+        priceTags: NDKTag[];
+        contractType: string | undefined;
+        jobCategories: string[];
     }
+
+    let { location, priceTags, contractType, jobCategories }: Props = $props();
+
+    let frequency: string | undefined = $derived(priceTags[0]?.[3]);
+    let currency: string | undefined = $derived(priceTags[0]?.[2]);
+    let price: string | undefined = $derived.by(() => {
+        let price = undefined;
+        if (priceTags?.length > 0) {
+            price = priceTags[0][1];
+
+            // Fix broken scientific notation
+            if (price.includes("e-")) {
+                price = format(parseFloat(price), { notation: "fixed" });
+            }
+        }
+        return price;
+    });
 </script>
 
 <div class="flex flex-row gap-2 items-start text-sm flex-wrap">

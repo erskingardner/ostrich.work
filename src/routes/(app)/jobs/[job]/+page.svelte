@@ -1,7 +1,18 @@
 <script lang="ts">
-    import { displayableName, formattedDate, unixTimeNowInSeconds } from "$lib/utils/helpers.js";
+    import {
+        displayableName,
+        firstTagValue,
+        formattedDate,
+        unixTimeNowInSeconds
+    } from "$lib/utils/helpers.js";
     import ndk from "$lib/stores/ndk.js";
-    import { NDKEvent, type NDKUser, type NDKTag, NDKNip07Signer } from "@nostr-dev-kit/ndk";
+    import {
+        NDKEvent,
+        type NDKUser,
+        type NDKTag,
+        NDKNip07Signer,
+        type NDKUserProfile
+    } from "@nostr-dev-kit/ndk";
     import { cleanMarkdown } from "$lib/utils/markdown.js";
     import JobStatPills from "$lib/components/JobStatPills.svelte";
     import { currentUser } from "$lib/stores/currentUser.js";
@@ -12,26 +23,65 @@
     import { Modal, Button, Tooltip } from "flowbite-svelte";
     import toast from "svelte-french-toast";
     import Avatar from "$lib/components/Avatar.svelte";
+    import { page } from "$app/stores";
+    import { onMount } from "svelte";
+    import { contractTypeOptions, categoryOptions } from "$lib/data/formOptions.js";
 
-    export let data;
+    let jobAddr: string = $page.params.job;
+    let job: NDKEvent | null = $state(null);
 
-    let user: NDKUser | undefined;
+    onMount(async () => {
+        job = await $ndk.fetchEvent($page.params.job);
+        if (!job) console.error("Job not found");
+    });
 
-    let deleteModalOpen = false;
+    let author: NDKUser | null = $derived(
+        job ? $ndk.getUser({ pubkey: job.pubkey as string }) : null
+    );
+    let authorProfile: NDKUserProfile | null = $state(null);
+    let title: string = $derived(job ? firstTagValue(job, "title") : "");
+    let description: string = $derived(job ? job.content : "");
+    let location: string = $derived(job ? firstTagValue(job, "location") : "");
+    let summary: string = $derived(job ? firstTagValue(job, "summary") : "");
+    let priceTags: NDKTag[] = $derived(job ? job.getMatchingTags("price") : []);
+    let createdAt: number = $derived(job ? (job.created_at as number) : 0);
+    let publishedAt: number = $derived(
+        job ? parseInt(firstTagValue(job, "published_at")) : createdAt
+    );
+    let authorImage: string | undefined = $derived(authorProfile?.image || undefined);
+    let authorPubkey: string | undefined = $derived(author?.pubkey || undefined);
+    let authorName: string | undefined = $derived(
+        authorProfile ? displayableName(authorProfile) : undefined
+    );
+    let tagReference: NDKTag | undefined = $derived(job ? job.tagReference() : undefined);
+    let hashtags: NDKTag[] = $derived(job ? job.getMatchingTags("t") : []);
+    let jobCategories: string[] = $derived.by(() => {
+        const jobCategories: string[] = [];
+        hashtags.forEach((tag) => {
+            const categoryMatch = categoryOptions.find((element) => element.value === tag[1]);
+            if (categoryMatch) jobCategories.push(categoryMatch.name);
+        });
+        return jobCategories;
+    });
+    let contractType: string | undefined = $derived.by(() => {
+        const contractTypeMatch = contractTypeOptions.find((element) =>
+            hashtags.some((tag) => tag[1] === element.value)
+        );
+        return contractTypeMatch?.name;
+    });
 
-    let messageModalOpen = false;
-    let messageContent: string = "";
-
-    const author: NDKUser = $ndk.getUser({ hexpubkey: data.authorPubkey });
+    let deleteModalOpen = $state(false);
+    let messageModalOpen = $state(false);
+    let messageContent: string = $state("");
 
     async function sendDirectMessage() {
-        if (user) {
+        if ($currentUser) {
             const message = new NDKEvent($ndk, {
                 kind: 4,
-                content: `New message via Ostrich.Work about your job posting "${data.title}"\n\n ${messageContent}`,
+                content: `New message via Ostrich.Work about your job posting "${title}"\n\n ${messageContent}`,
                 created_at: unixTimeNowInSeconds(),
-                pubkey: user?.pubkey as string,
-                tags: [["p", data.authorPubkey as string]]
+                pubkey: $currentUser?.pubkey as string,
+                tags: [["p", authorPubkey as string]]
             });
 
             if (!$ndk.signer) {
@@ -39,7 +89,7 @@
                 $ndk.signer = signer;
             }
             // Encrypt for the job author
-            await message.encrypt(author);
+            await message.encrypt(author as NDKUser);
 
             toast
                 .promise(
@@ -63,9 +113,9 @@
     async function deletePost() {
         const deleteEvent = new NDKEvent($ndk, {
             kind: 5,
-            pubkey: data.authorPubkey as string,
+            pubkey: authorPubkey as string,
             content: "Event deleted by owner",
-            tags: [["t", "job"], ["t", "work"], ["t", "employment"], data.tagReference as NDKTag],
+            tags: [["t", "job"], ["t", "work"], ["t", "employment"], tagReference as NDKTag],
             created_at: unixTimeNowInSeconds()
         });
 
@@ -90,25 +140,23 @@
                 deleteModalOpen = false;
             });
     }
-
-    $: if ($currentUser) user = $ndk.getUser({ npub: $currentUser.npub });
 </script>
 
 <svelte:head>
-    <title>{data.title} from @{data.authorName}</title>
-    <meta name="description" content={data.summary} />
+    <title>{title} from @{authorName}</title>
+    <meta name="description" content={summary} />
 
-    <meta property="og:title" content="{data.title} from @{data.authorName}" />
+    <meta property="og:title" content="{title} from @{authorName}" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://ostrich.work/jobs/{data.jobAddr}" />
-    <meta property="og:image" content={data.authorImage} />
+    <meta property="og:url" content="https://ostrich.work/jobs/{jobAddr}" />
+    <meta property="og:image" content={authorImage} />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta property="twitter:domain" content="ostrich.work" />
-    <meta name="twitter:title" content="{data.title} from @{data.authorName}" />
-    <meta name="twitter:description" content={data.summary} />
-    <meta property="twitter:url" content="https://ostrich.work/jobs/{data.jobAddr}" />
-    <meta name="twitter:image" content={data.authorImage} />
+    <meta name="twitter:title" content="{title} from @{authorName}" />
+    <meta name="twitter:description" content={summary} />
+    <meta property="twitter:url" content="https://ostrich.work/jobs/{jobAddr}" />
+    <meta name="twitter:image" content={authorImage} />
 </svelte:head>
 
 <Modal
@@ -160,20 +208,20 @@
     </svelte:fragment>
 </Modal>
 
-{#key data.jobAddr}
-    {#if data.jobAddr}
+{#key jobAddr}
+    {#if jobAddr}
         <div class="flex flex-col lg:flex-row gap-20 items-start justify-between">
             <div class="prose dark:prose-invert xl:max-w-4xl">
                 <h1 class="mt-10 mb-2 text-orange-600 border-b-2 border-b-orange-500 pb-1 italic">
-                    {data.title}
+                    {title}
                 </h1>
-                <span class="italic text-lg font-bold">{data.summary}</span>
+                <span class="italic text-lg font-bold">{summary}</span>
                 <div class="flex flex-col gap-8">
                     <div>
                         <h2 class="text-orange-600 border-b-2 border-b-orange-500 italic">
                             Job Description
                         </h2>
-                        <div class="markdownContent">{@html cleanMarkdown(data.description)}</div>
+                        <div class="markdownContent">{@html cleanMarkdown(description)}</div>
                     </div>
                 </div>
             </div>
@@ -182,7 +230,7 @@
                     Posted by
                 </h1>
                 <div>
-                    {#await author.fetchProfile() then value}
+                    {#if author}
                         <div class="flex flex-row gap-4 items-start font-medium w-full">
                             <a href={`/${author.npub}`} class="border-none flex w-28 h-28 shrink-0"
                                 ><Avatar
@@ -204,25 +252,20 @@
                             </div>
                         </div>
                         <div class="mt-8">{author.profile?.about}</div>
-                    {/await}
+                    {/if}
                 </div>
                 <div>
                     <div class="flex flex-row gap-1 items-center">
                         <ClockIcon class="w-5 h-5" />
-                        First posted: {formattedDate(data.publishedAt)}
+                        First posted: {formattedDate(publishedAt)}
                     </div>
                     <div class="flex flex-row gap-1 items-center">
                         <ArrowCircleIcon class="w-5 h-5" />
-                        Last updated: {formattedDate(data.createdAt)}
+                        Last updated: {formattedDate(createdAt)}
                     </div>
                 </div>
                 <div>
-                    <JobStatPills
-                        location={data.location}
-                        priceTags={data.priceTags}
-                        contractType={data.contractType}
-                        jobCategories={data.jobCategories}
-                    />
+                    <JobStatPills {location} {priceTags} {contractType} {jobCategories} />
                 </div>
                 <div>
                     <button
@@ -236,10 +279,10 @@
                 {#if !$currentUser?.npub}
                     <Tooltip>Log in to message the poster</Tooltip>
                 {/if}
-                {#if $currentUser?.npub === author.npub}
+                {#if $currentUser?.npub === author?.npub}
                     <div class="flex flex-row justify-end">
                         <a
-                            href={`/jobs/${data.jobAddr}/edit`}
+                            href={`/jobs/${jobAddr}/edit`}
                             class="not-styled w-full text-center py-2 px-4 transition-all focus:outline-none border-none no-underline text-xl duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg"
                         >
                             <span class="skew-x-12 block">Edit your post</span>
