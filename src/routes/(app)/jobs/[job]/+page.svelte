@@ -26,6 +26,7 @@
     import { page } from "$app/stores";
     import { onMount } from "svelte";
     import { contractTypeOptions, categoryOptions } from "$lib/data/formOptions.js";
+    import Name from "$lib/components/Name.svelte";
 
     let jobAddr: string = $page.params.job;
     let job: NDKEvent | null = $state(null);
@@ -36,16 +37,25 @@
     });
 
     let author: NDKUser | null = $derived(
-        job ? $ndk.getUser({ pubkey: job.pubkey as string }) : null
+        job ? $ndk.getUser({ pubkey: (job as NDKEvent).pubkey as string }) : null
     );
     let authorProfile: NDKUserProfile | null = $state(null);
+
+    $effect(() => {
+        if (author) {
+            author.fetchProfile().then((profile) => {
+                authorProfile = profile;
+            });
+        }
+    });
+
     let title: string = $derived(job ? firstTagValue(job, "title") : "");
-    let description: string = $derived(job ? job.content : "");
+    let description: string = $derived(job ? (job as NDKEvent).content : "");
     let location: string = $derived(job ? firstTagValue(job, "location") : "");
     let summary: string = $derived(job ? firstTagValue(job, "summary") : "");
-    let priceTags: NDKTag[] = $derived(job ? job.getMatchingTags("price") : []);
-    let createdAt: number = $derived(job ? (job.created_at as number) : 0);
-    let publishedAt: number = $derived(
+    let priceTags: NDKTag[] = $derived(job ? (job as NDKEvent).getMatchingTags("price") : []);
+    let createdAt: number | undefined = $derived(job ? (job as NDKEvent).created_at : undefined);
+    let publishedAt: number | undefined = $derived(
         job ? parseInt(firstTagValue(job, "published_at")) : createdAt
     );
     let authorImage: string | undefined = $derived(authorProfile?.image || undefined);
@@ -53,8 +63,10 @@
     let authorName: string | undefined = $derived(
         authorProfile ? displayableName(authorProfile) : undefined
     );
-    let tagReference: NDKTag | undefined = $derived(job ? job.tagReference() : undefined);
-    let hashtags: NDKTag[] = $derived(job ? job.getMatchingTags("t") : []);
+    let tagReference: NDKTag | undefined = $derived(
+        job ? (job as NDKEvent).tagReference() : undefined
+    );
+    let hashtags: NDKTag[] = $derived(job ? (job as NDKEvent).getMatchingTags("t") : []);
     let jobCategories: string[] = $derived.by(() => {
         const jobCategories: string[] = [];
         hashtags.forEach((tag) => {
@@ -190,7 +202,7 @@
             bind:value={messageContent}
             placeholder="What do you want to say?"
             class="bg-transparent w-full h-48"
-        />
+        ></textarea>
     </form>
     <svelte:fragment slot="footer">
         <div class="flex flex-row gap-8 items-start justify-between">
@@ -241,9 +253,9 @@
                             <div class="flex flex-col gap-1 items-start break-words shrink">
                                 <div class="flex flex-row gap-1 items-center">
                                     <LinkOutIcon class="w-4 h-4" />
-                                    <a href="https://primal.net/profile/{author.npub}"
-                                        >{displayableName(author)}</a
-                                    >
+                                    <a href="https://primal.net/profile/{author.npub}">
+                                        <Name user={author} />
+                                    </a>
                                 </div>
                                 <div class="flex flex-row gap-1 items-center">
                                     <CheckBadgeIcon class="w-5 h-5" />
@@ -257,11 +269,11 @@
                 <div>
                     <div class="flex flex-row gap-1 items-center">
                         <ClockIcon class="w-5 h-5" />
-                        First posted: {formattedDate(publishedAt)}
+                        First posted: {publishedAt ? formattedDate(publishedAt) : "unknown"}
                     </div>
                     <div class="flex flex-row gap-1 items-center">
                         <ArrowCircleIcon class="w-5 h-5" />
-                        Last updated: {formattedDate(createdAt)}
+                        Last updated: {createdAt ? formattedDate(createdAt) : "unknown"}
                     </div>
                 </div>
                 <div>
@@ -270,7 +282,7 @@
                 <div>
                     <button
                         disabled={$currentUser?.npub ? false : true}
-                        on:click={() => (messageModalOpen = true)}
+                        onclick={() => (messageModalOpen = true)}
                         class="w-full py-2 px-4 transition-all text-center focus:outline-none border-none no-underline text-xl duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg"
                     >
                         <span class="skew-x-12 block">Message the poster</span>
@@ -290,7 +302,7 @@
                     </div>
                     <div class="flex flex-row justify-end">
                         <button
-                            on:click={() => (deleteModalOpen = true)}
+                            onclick={() => (deleteModalOpen = true)}
                             class="w-full py-2 px-4 transition-all text-center focus:outline-none border-none no-underline text-xl duration-1000 hover:duration-500 font-extrabold italic text-white hover:text-white bg-purple-700 -skew-x-12 shadow-square-grey hover:shadow-square-orange-lg"
                         >
                             <span class="skew-x-12 block">Delete this post</span>

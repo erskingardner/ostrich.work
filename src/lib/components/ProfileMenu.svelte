@@ -6,14 +6,16 @@
     import PersonIcon from "../elements/icons/Person.svelte";
     import LogoutIcon from "../elements/icons/Logout.svelte";
     import { createEventDispatcher } from "svelte";
+    import type { NDKUserProfile } from "@nostr-dev-kit/ndk";
 
     const dispatch = createEventDispatcher();
 
-    let profile: NDKUserProfile | null = $state(null);
+    let profile: NDKUserProfile | undefined = $state(undefined);
 
-    $effect(async () => {
-        const userProfile = await $currentUser.fetchProfile();
-        profile = userProfile;
+    $effect(() => {
+        $currentUser?.fetchProfile().then((profile) => {
+            profile = profile;
+        });
     });
 </script>
 
